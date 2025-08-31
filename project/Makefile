@@ -1,4 +1,4 @@
-CROSS_COMPILE=../tools/gcc/bin/csky-abiv2-elf-
+CROSS_COMPILE ?=../tools/gcc/bin/csky-elfabiv2-
 CC	:= $(CROSS_COMPILE)gcc
 OP	:= $(CROSS_COMPILE)objcopy
 AR	:= $(CROSS_COMPILE)ar
@@ -11,9 +11,6 @@ ST	:= $(CROSS_COMPILE)strip
 
 all: application 
 
-OBJ_DIR=./obj
-BIN_DIR=./bin
-OUT_DIR = ./output
 APP_BIN_NAME ?= OpenTXW81X
 APP_VERSION ?= 1.0.0
 
@@ -1475,16 +1472,9 @@ application: test_target
 
 .PHONY: prerequirement
 prerequirement:
-	echo prerequirement0
 	@echo ===========================================================
 	@echo Build $(APP_BIN_NAME)
 	@echo ===========================================================
-	echo prerequirement1
-	mkdir -p $(OBJ_DIR)
-	mkdir -p $(BIN_DIR)
-	echo prerequirement2
-	
-	@mkdir -p $(OUT_DIR)
 
 $(SRC_O): %.o : %.c
 	@ echo "build_c $@"
