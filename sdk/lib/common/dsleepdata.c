@@ -23,7 +23,7 @@ __init void sys_sleepdata_init(void)
     struct system_sleepdata *sdata = (struct system_sleepdata *)start;
     flags = disable_irq();
     if (sdata->magic1 != 0x1A2B3C4D || sdata->magic2 != 0xD4C3B2A1) {
-        dump_hex("sleepdata_init: ", ((uint8 *)&__sleep_data_stop) + 4 , 4, 1);
+        //dump_hex("sleepdata_init: ", ((uint8 *)&__sleep_data_stop) + 4 , 4, 1);
         os_memset(sdata, 0, sizeof(struct system_sleepdata));
         sdata->magic1 = 0x1A2B3C4D;
         sdata->magic2 = 0xD4C3B2A1;

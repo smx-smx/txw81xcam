@@ -1460,15 +1460,15 @@ OBJ_LIST += $(SRC_SO)
 test_target: prerequirement $(SRC_O) $(SRC_SO)
 
 application: test_target
-	$(CC) -o project.elf -L./../libs \
+	@$(CC) -o project.elf -L./../libs \
 	-u user_main -march=ck803 -mcpu=ck803s -g -Wl,--gc-sections -Wl,-zmax-page-size=1024 \
 	-Xlinker -Map=project.map \
 	-Wl,--start-group $(OBJ_LIST) \
 	$(LDFLAGS) -Wl,--end-group -T./utilities/gcc_csky.ld \
 	-Xlinker -Map=project.map
 
-	$(OP) --strip-unneeded -O ihex project.elf project.hex
-	$(OP) --strip-unneeded -O binary project.elf project.bin
+	@$(OP) --strip-unneeded -O ihex project.elf project.hex
+	@$(OP) --strip-unneeded -O binary project.elf project.bin
 
 .PHONY: prerequirement
 prerequirement:
