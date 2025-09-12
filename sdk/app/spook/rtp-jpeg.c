@@ -18,12 +18,12 @@
 
 
 #include <stdio.h>
-#include "lwip\sockets.h"
-#include "lwip\netif.h"
-#include "lwip\dns.h"
+#include "lwip/sockets.h"
+#include "lwip/netif.h"
+#include "lwip/dns.h"
 
-#include "lwip\api.h"
-#include "lwip\tcp.h"
+#include "lwip/api.h"
+#include "lwip/tcp.h"
 
 #include <event.h>
 #include <log.h>
@@ -857,7 +857,7 @@ int fd_send_data(int fd,unsigned char *sendbuf,int sendLen,int times)
 	}
 	if(size<0)
 	{
-		_os_printf("%s err size:%d\n",__FUNCTION__,size);
+		//_os_printf("%s err size:%d\n",__FUNCTION__,size);
 		return -1;
 
 	}
