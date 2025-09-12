@@ -891,18 +891,18 @@
 
 
 //默认sdk匹配学习板,使用PC_2和PC_3作为dvp的i2c
-#define PIN_IIC2_SCL PC_4
-#define PIN_IIC2_SDA PC_5
+#define PIN_IIC2_SCL PC_2
+#define PIN_IIC2_SDA PC_3
 
 
 //DVP的power down和reset引脚
-#define PIN_DVP_RESET  255
-#define PIN_DVP_PDN    255
+#define PIN_DVP_RESET  PC_4
+#define PIN_DVP_PDN    PC_5
 
 //sd卡的io
-#define PIN_SDH_CLK		  PC_4//PC_2//
-#define PIN_SDH_CMD		  PC_3//PC_3//
-#define PIN_SDH_DAT0	  PC_2//PC_4//
+#define PIN_SDH_CLK		  255//PC_2//
+#define PIN_SDH_CMD		  255//PC_3//
+#define PIN_SDH_DAT0	  255//PC_4//
 #define PIN_SDH_DAT1	  255
 #define PIN_SDH_DAT2	  255
 #define PIN_SDH_DAT3	  255
