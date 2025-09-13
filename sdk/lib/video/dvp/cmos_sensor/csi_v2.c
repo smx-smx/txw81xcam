@@ -1614,40 +1614,33 @@ bool csi_yuv_mode(){
 	uint16 image_w,image_h;
 	
 	dvp_test = (struct dvp_device *)dev_get(HG_DVP_DEVID);
-	vpp_test = (struct vpp_device *)dev_get(HG_VPP_DEVID);
-	iic_test = (struct i2c_device *)dev_get(HG_I2C2_DEVID);	
-	scale_dev = (struct scale_device *)dev_get(HG_SCALE1_DEVID);
- 
-	dvp_init(dvp_test);
+    vpp_test = (struct vpp_device *)dev_get(HG_VPP_DEVID);
+    iic_test = (struct i2c_device *)dev_get(HG_I2C2_DEVID);
+    scale_dev = (struct scale_device *)dev_get(HG_SCALE1_DEVID);
 
-//1:init iic
-	os_printf("csi_test start,iic init\r\n");
+    dvp_init(dvp_test);
 
-	//iic_init_sensor(IIC_CLK,SENSOR_IIC);
-	i2c_open(iic_test, IIC_MODE_MASTER, IIC_ADDR_7BIT, 0);
-	i2c_set_baudrate(iic_test,IIC_CLK);
-	i2c_ioctl(iic_test,IIC_SDA_OUTPUT_DELAY,20);	
-	i2c_ioctl(iic_test,IIC_FILTERING,20);
-	i2c_ioctl(iic_test,IIC_STRONG_OUTPUT,1);
+    // 1) init i2c (as before)
+    os_printf("csi_test start,iic init\r\n");
+    i2c_open(iic_test, IIC_MODE_MASTER, IIC_ADDR_7BIT, 0);
+    i2c_set_baudrate(iic_test, IIC_CLK);
+    i2c_ioctl(iic_test, IIC_SDA_OUTPUT_DELAY, 20);
+    i2c_ioctl(iic_test, IIC_FILTERING, 20);
+    i2c_ioctl(iic_test, IIC_STRONG_OUTPUT, 1);
 
-	//i2c_send_stop(iic_test);
-	os_printf("iic init finish,sensor reset & set sensor clk into 6M\r\n");
-//2:init sensor
-	dvp_set_baudrate(dvp_test,6000000); 
-	os_sleep_ms(3);
+    os_printf("iic init finish,sensor reset & set sensor clk into 6M\r\n");
+    // 2) give the sensor a clock first
+    dvp_set_baudrate(dvp_test, 6000000);
+    os_sleep_ms(3);
 
-	os_printf("set sensor finish ,Auto Check sensor id\r\n");
-	p_sensor_cmd = snser.p_sensor_cmd = sensorAutoCheck(iic_test,NULL);
-	if(p_sensor_cmd == NULL){
-		return FALSE;
-	}
-	os_printf("Auto Check sensor id finish\r\n");
-	i2c_setting.u8DevWriteAddr = p_sensor_cmd->w_cmd;
-	i2c_setting.u8DevReadAddr = p_sensor_cmd->r_cmd;
-	i2c_SetSetting(&i2c_setting);
-	
-	os_printf("mclk:%dMHz\r\n",p_sensor_cmd->mclk);
-	
+    // 3) now do a reset pulse and run the SAFE GPIO-only scanner
+    extern void sensor_reset(void);
+    extern void txw81x_bb_sccb_scan_and_log(void);
+    sensor_reset();                 // __weak in this file; safe to call twice
+    txw81x_bb_sccb_scan_and_log();  // only pulls low / releases high
+
+    os_printf("set sensor finish ,Auto Check sensor id\r\n");
+    p_sensor_cmd = snser.p_sensor_cmd = sensorAutoCheck(iic_test, NULL);	
 	
 	//sensor_ClockInit(((struct hgdvp*)dvp_test)->hw,p_sensor_cmd->mclk);
 	dvp_set_baudrate(dvp_test,p_sensor_cmd->mclk);
