@@ -47,7 +47,7 @@ static void _bb_mdelay(unsigned ms) {
 static inline void _line_release(int pin) {
     /* input + pull-up, minimal drive */
     gpio_driver_strength(pin, GPIO_DS_4MA);
-    gpio_set_mode(pin, GPIO_PULL_UP, GPIO_PULL_LEVEL_100K);
+    gpio_set_mode(pin, GPIO_PULL_UP, GPIO_PULL_LEVEL_4_7K);
     gpio_set_dir(pin, GPIO_DIR_INPUT);
 }
 static inline void _line_low(int pin) {
@@ -91,12 +91,24 @@ static int _bus_idle_high(int scl,int sda){
 
 /* Candidate SCL/SDA pairs (safe, common on TXW81x designs). Try both orders. */
 static const int _pairs[][2] = {
+    // tried before
     { PC_2, PC_3 }, { PC_3, PC_2 },
     { PB_6, PB_7 }, { PB_7, PB_6 },
     { PA_11, PA_12 }, { PA_12, PA_11 },
     { PC_4, PC_5 }, { PC_5, PC_4 },
     { PC_0, PC_1 }, { PC_1, PC_0 },
     { PB_8, PB_9 }, { PB_9, PB_8 },
+
+    // NEW candidates (skip your UART0 PC_6/PC_7)
+    { PA_8, PA_9 }, { PA_9, PA_8 },
+    { PB_2, PB_3 }, { PB_3, PB_2 },
+    { PB_4, PB_5 }, { PB_5, PB_4 },
+    { PB_0, PB_1 }, { PB_1, PB_0 },
+    { PC_6, PC_5 }, { PC_5, PC_6 },   // around your SD/LCD zones, still safe
+    { PC_8, PC_9 }, { PC_9, PC_8 },   // LCD D0/D1 on some builds; harmless with pull-up only
+    { PC_10, PC_11 }, { PC_11, PC_10 },
+    { PC_12, PC_13 }, { PC_13, PC_12 },
+    { PC_14, PC_15 }, { PC_15, PC_14 },
 };
 
 static const unsigned char _probe_addrs[] = {
