@@ -548,7 +548,7 @@ void device_init(void)
 
 //    hgi2c_v1_attach(HG_I2C0_DEVID, &iic0);
     hgspi_v3_attach(HG_SPI1_DEVID, &spi1);
-    hgi2c_v1_attach(HG_I2C2_DEVID, &iic2);
+    hgi2c_v1_attach(HG_I2C1_DEVID, &iic1);
 //    hgi2c_attach(HG_I2C3_DEVID, &iic3);
 
     //hgcqspi_attach(HG_QSPI_DEVID, &cqspi);
