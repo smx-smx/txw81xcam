@@ -21,159 +21,11 @@ uint8 *yuvbuf = NULL;
 
 #define RESET_LOW()		    {gpio_set_val(rsn,0);}
 
+
+
+
+
 #define IIC_CLK 120000UL
-
-/* ===== SAFE GPIO-ONLY SCCB/I2C SCANNER (embedded) =====
-   - Drives LOW only, otherwise releases lines (uses pull-ups)
-   - Very slow timing, gentle on pins
-   - Probes common 7-bit addrs for ACK, no register writes
-   - No extra headers required here; uses the same HAL funcs as this file
-*/
-#ifndef ARRAYSIZE
-#define ARRAYSIZE(a) ((int)(sizeof(a)/sizeof((a)[0])))
-#endif
-
-/* --- tiny delays --- */
-static void _bb_udelay(unsigned us) {
-    volatile unsigned n = us * 40u;   /* slow is fine; adjust if needed */
-    while (n--) __asm__ volatile("nop");
-}
-extern void os_sleep_ms(int ms);  // already used elsewhere in this SDK
-static void _bb_mdelay(unsigned ms) {
-    os_sleep_ms((int)ms);
-}
-
-/* --- HAL helpers (use existing SDK functions declared elsewhere in this TU) --- */
-static inline void _line_release(int pin) {
-    /* input + pull-up, minimal drive */
-    gpio_driver_strength(pin, GPIO_DS_4MA);
-    gpio_set_mode(pin, GPIO_PULL_UP, GPIO_PULL_LEVEL_4_7K);
-    gpio_set_dir(pin, GPIO_DIR_INPUT);
-}
-static inline void _line_low(int pin) {
-    /* open-drain low */
-    gpio_driver_strength(pin, GPIO_DS_4MA);
-    gpio_set_mode(pin, GPIO_OPENDRAIN_DROP_NONE, GPIO_PULL_LEVEL_NONE);
-    gpio_set_dir(pin, GPIO_DIR_OUTPUT);
-    gpio_set_val(pin, 0);
-}
-static inline int _line_read(int pin) {
-    gpio_set_dir(pin, GPIO_DIR_INPUT);
-    return gpio_get_val(pin);
-}
-
-/* --- bit-bang SCCB/I2C primitives --- */
-static void _bb_start(int scl,int sda){ _line_release(sda); _line_release(scl); _bb_udelay(200); _line_low(sda); _bb_udelay(200); _line_low(scl); _bb_udelay(200); }
-static void _bb_stop (int scl,int sda){ _line_low(sda); _bb_udelay(200); _line_release(scl); _bb_udelay(200); _line_release(sda); _bb_udelay(200); }
-static void _bb_clk_hi(int scl){ _line_release(scl); _bb_udelay(200); }
-static void _bb_clk_lo(int scl){ _line_low(scl);     _bb_udelay(200); }
-
-static void _bb_write_bit(int scl,int sda,int bit){ if(bit)_line_release(sda); else _line_low(sda); _bb_clk_hi(scl); _bb_clk_lo(scl); }
-static int  _bb_read_bit (int scl,int sda){ _line_release(sda); _bb_clk_hi(scl); int b=_line_read(sda); _bb_clk_lo(scl); return b; }
-
-static int _bb_write_byte(int scl,int sda,unsigned char byte){
-    for(int i=7;i>=0;--i) _bb_write_bit(scl,sda,(byte>>i)&1);
-    return _bb_read_bit(scl,sda)==0; /* ACK==0 */
-}
-
-static void _bb_try_bus_reset(int scl,int sda){
-    _line_release(sda); _line_release(scl); _bb_udelay(200);
-    if(!_line_read(sda) || !_line_read(scl)){
-        for(int i=0;i<9;++i){ _bb_clk_hi(scl); _bb_clk_lo(scl); }
-        _bb_stop(scl,sda);
-    }
-}
-
-static int _bus_idle_high(int scl,int sda){
-    _line_release(scl); _line_release(sda); _bb_udelay(300);
-    return _line_read(scl) && _line_read(sda);
-}
-
-/* Candidate SCL/SDA pairs (safe, common on TXW81x designs). Try both orders. */
-static const int _pairs[][2] = {
-    // tried before
-    { PC_2, PC_3 }, { PC_3, PC_2 },
-    { PB_6, PB_7 }, { PB_7, PB_6 },
-    { PA_11, PA_12 }, { PA_12, PA_11 },
-    { PC_4, PC_5 }, { PC_5, PC_4 },
-    { PC_0, PC_1 }, { PC_1, PC_0 },
-    { PB_8, PB_9 }, { PB_9, PB_8 },
-
-    // NEW candidates (skip your UART0 PC_6/PC_7)
-    { PA_8, PA_9 }, { PA_9, PA_8 },
-    { PB_2, PB_3 }, { PB_3, PB_2 },
-    { PB_4, PB_5 }, { PB_5, PB_4 },
-    { PB_0, PB_1 }, { PB_1, PB_0 },
-    { PC_6, PC_5 }, { PC_5, PC_6 },   // around your SD/LCD zones, still safe
-    { PC_8, PC_9 }, { PC_9, PC_8 },   // LCD D0/D1 on some builds; harmless with pull-up only
-    { PC_10, PC_11 }, { PC_11, PC_10 },
-    { PC_12, PC_13 }, { PC_13, PC_12 },
-    { PC_14, PC_15 }, { PC_15, PC_14 },
-};
-
-static const unsigned char _probe_addrs[] = {
-    0x21, 0x23,                 /* 0x42/0x46 >>1 */
-    0x30, 0x31, 0x3C, 0x3D,     /* OV/GC common */
-    0x10, 0x11, 0x12, 0x13,     /* extra */
-    0x32, 0x33, 0x34, 0x35,
-};
-
-static void _print_pin(int p){
-    if (p>=48) os_printf("PD_%d", p-48);
-    else if (p>=32) os_printf("PC_%d", p-32);
-    else if (p>=16) os_printf("PB_%d", p-16);
-    else os_printf("PA_%d", p);
-}
-
-/* ========= public: callable from csi_yuv_mode() ========= */
-void txw81x_bb_sccb_scan_and_log(void)
-{
-    os_printf("[bbscan] Safe SCCB/I2C pin scan START\r\n");
-
-    for (int i=0; i<ARRAYSIZE(_pairs); ++i) {
-        int scl = _pairs[i][0], sda = _pairs[i][1];
-
-        _line_release(scl);
-        _line_release(sda);
-        _bb_mdelay(1);
-
-        if (!_bus_idle_high(scl,sda)) {
-            os_printf("[bbscan] %s/",""); _print_pin(scl); os_printf("/");
-            _print_pin(sda); os_printf(": bus busy, trying 9-pulse reset...\r\n");
-            _bb_try_bus_reset(scl,sda);
-            if (!_bus_idle_high(scl,sda)) {
-                os_printf("[bbscan]   still busy, skipping to avoid forcing lines\r\n");
-                continue;
-            }
-        }
-
-        int hit = 0;
-        for (int k=0; k<ARRAYSIZE(_probe_addrs) && !hit; ++k) {
-            unsigned char addr = (unsigned char)(_probe_addrs[k] << 1); /* write phase */
-            _bb_start(scl,sda);
-            int ack = _bb_write_byte(scl,sda,addr);
-            _bb_stop(scl,sda);
-            _bb_mdelay(1);
-
-            if (ack) {
-                os_printf("[bbscan] ACK @7b 0x%02X on ", _probe_addrs[k]);
-                _print_pin(scl); os_printf("(SCL)/"); _print_pin(sda); os_printf("(SDA)\r\n");
-                os_printf("[bbscan] Paste into project_config.h:\r\n");
-                os_printf("#define PIN_IIC2_SCL  "); _print_pin(scl); os_printf("\r\n");
-                os_printf("#define PIN_IIC2_SDA  "); _print_pin(sda); os_printf("\r\n");
-                hit = 1;
-            }
-        }
-
-        if (!hit) {
-            os_printf("[bbscan] No ACKs on "); _print_pin(scl); os_printf("/"); _print_pin(sda); os_printf("\r\n");
-        }
-    }
-
-    os_printf("[bbscan] DONE\r\n");
-}
-/* ===== end embedded scanner ===== */
-
 
 uint8 u8SensorwriteID,u8SensorreadID;
 uint8 u8Addrbytnum,u8Databytnum;
@@ -1762,35 +1614,40 @@ bool csi_yuv_mode(){
 	uint16 image_w,image_h;
 	
 	dvp_test = (struct dvp_device *)dev_get(HG_DVP_DEVID);
-    vpp_test = (struct vpp_device *)dev_get(HG_VPP_DEVID);
-    iic_test = (struct i2c_device *)dev_get(HG_I2C2_DEVID);
-    scale_dev = (struct scale_device *)dev_get(HG_SCALE1_DEVID);
+	vpp_test = (struct vpp_device *)dev_get(HG_VPP_DEVID);
+	iic_test = (struct i2c_device *)dev_get(HG_I2C2_DEVID);	
+	scale_dev = (struct scale_device *)dev_get(HG_SCALE1_DEVID);
+ 
+	dvp_init(dvp_test);
 
-    dvp_init(dvp_test);
+//1:init iic
+	os_printf("csi_test start,iic init\r\n");
 
-    // 1) init i2c (as before)
-    os_printf("csi_test start,iic init\r\n");
-    i2c_open(iic_test, IIC_MODE_MASTER, IIC_ADDR_7BIT, 0);
-    i2c_set_baudrate(iic_test, IIC_CLK);
-    i2c_ioctl(iic_test, IIC_SDA_OUTPUT_DELAY, 20);
-    i2c_ioctl(iic_test, IIC_FILTERING, 20);
-    i2c_ioctl(iic_test, IIC_STRONG_OUTPUT, 1);
+	//iic_init_sensor(IIC_CLK,SENSOR_IIC);
+	i2c_open(iic_test, IIC_MODE_MASTER, IIC_ADDR_7BIT, 0);
+	i2c_set_baudrate(iic_test,IIC_CLK);
+	i2c_ioctl(iic_test,IIC_SDA_OUTPUT_DELAY,20);	
+	i2c_ioctl(iic_test,IIC_FILTERING,20);
+	i2c_ioctl(iic_test,IIC_STRONG_OUTPUT,1);
 
-    os_printf("iic init finish,sensor reset & set sensor clk into 6M\r\n");
-    // 2) give the sensor a clock first
-    dvp_set_baudrate(dvp_test, 6000000);
-    os_sleep_ms(3);
+	//i2c_send_stop(iic_test);
+	os_printf("iic init finish,sensor reset & set sensor clk into 6M\r\n");
+//2:init sensor
+	dvp_set_baudrate(dvp_test,6000000); 
+	os_sleep_ms(3);
 
-    // 3) now do a reset pulse and run the SAFE GPIO-only scanner
-    #ifdef TXW_SCAN_SCCB_ON_BOOT
-	extern void sensor_reset(void);
-    extern void txw81x_bb_sccb_scan_and_log(void);
-    sensor_reset();                 // __weak in this file; safe to call twice
-    txw81x_bb_sccb_scan_and_log();  // only pulls low / releases high
-	#endif
+	os_printf("set sensor finish ,Auto Check sensor id\r\n");
+	p_sensor_cmd = snser.p_sensor_cmd = sensorAutoCheck(iic_test,NULL);
+	if(p_sensor_cmd == NULL){
+		return FALSE;
+	}
+	os_printf("Auto Check sensor id finish\r\n");
+	i2c_setting.u8DevWriteAddr = p_sensor_cmd->w_cmd;
+	i2c_setting.u8DevReadAddr = p_sensor_cmd->r_cmd;
+	i2c_SetSetting(&i2c_setting);
 	
-    os_printf("set sensor finish ,Auto Check sensor id\r\n");
-    p_sensor_cmd = snser.p_sensor_cmd = sensorAutoCheck(iic_test, NULL);	
+	os_printf("mclk:%dMHz\r\n",p_sensor_cmd->mclk);
+	
 	
 	//sensor_ClockInit(((struct hgdvp*)dvp_test)->hw,p_sensor_cmd->mclk);
 	dvp_set_baudrate(dvp_test,p_sensor_cmd->mclk);
