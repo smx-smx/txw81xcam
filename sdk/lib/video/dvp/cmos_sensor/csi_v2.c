@@ -38,8 +38,9 @@ static void _bb_udelay(unsigned us) {
     volatile unsigned n = us * 40u;   /* slow is fine; adjust if needed */
     while (n--) __asm__ volatile("nop");
 }
+extern void os_sleep_ms(int ms);  // already used elsewhere in this SDK
 static void _bb_mdelay(unsigned ms) {
-    os_mdelay(ms);
+    os_sleep_ms((int)ms);
 }
 
 /* --- HAL helpers (use existing SDK functions declared elsewhere in this TU) --- */
