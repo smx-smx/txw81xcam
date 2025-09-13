@@ -98,7 +98,9 @@ struct hgic_atcmd_normal {
 
 struct hgic_atcmd_normal *atcmd_uart_normal = NULL;
 
-
+__attribute__((weak)) void txw81x_bb_sccb_scan_and_log(void) {
+    os_printf("[bbscan] (stub) scanner not linked; add project/sccb_bbscan_safe.c to the build.\r\n");
+}
 
 #if NET_PAIR
 void set_pair_mode(uint8_t enable)
