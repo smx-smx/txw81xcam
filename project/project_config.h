@@ -896,8 +896,8 @@
 
 
 //DVP的power down和reset引脚
-#define PIN_DVP_RESET  PC_4
-#define PIN_DVP_PDN    PC_5
+#define PIN_DVP_RESET  PA_12
+#define PIN_DVP_PDN    255
 
 //sd卡的io
 #define PIN_SDH_CLK		  255//PC_2//
