@@ -896,8 +896,8 @@
 
 
 //DVP的power down和reset引脚
-#define PIN_DVP_RESET  PA_12
-#define PIN_DVP_PDN    255
+#define PIN_DVP_RESET  PC_4
+#define PIN_DVP_PDN    PC_5
 
 //sd卡的io
 #define PIN_SDH_CLK		  255//PC_2//
@@ -911,21 +911,21 @@
 //LCD的io
 #define PIN_LCD_RESET  255//255//
 
-#define DOTCLK_RWR PA_0
-#define DE_ERD PA_2
-#define VS_CS  PC_5
-#define HS_DC  PA_11
+#define DOTCLK_RWR 255
+#define DE_ERD 255
+#define VS_CS  255
+#define HS_DC  255
 #define LCD_TE 255
 
 
-#define LCD_D0 PC_8
-#define LCD_D1 PC_9
-#define LCD_D2 PC_10
-#define LCD_D3 PC_11
-#define LCD_D4 PC_12
-#define LCD_D5 PC_13
-#define LCD_D6 PC_14
-#define LCD_D7 PC_15
+#define LCD_D0 255
+#define LCD_D1 255
+#define LCD_D2 255
+#define LCD_D3 255
+#define LCD_D4 255
+#define LCD_D5 255
+#define LCD_D6 255
+#define LCD_D7 255
 #define LCD_D8 255
 #define LCD_D9 255
 #define LCD_D10 255
