@@ -1782,11 +1782,13 @@ bool csi_yuv_mode(){
     os_sleep_ms(3);
 
     // 3) now do a reset pulse and run the SAFE GPIO-only scanner
-    extern void sensor_reset(void);
+    #ifdef TXW_SCAN_SCCB_ON_BOOT
+	extern void sensor_reset(void);
     extern void txw81x_bb_sccb_scan_and_log(void);
     sensor_reset();                 // __weak in this file; safe to call twice
     txw81x_bb_sccb_scan_and_log();  // only pulls low / releases high
-
+	#endif
+	
     os_printf("set sensor finish ,Auto Check sensor id\r\n");
     p_sensor_cmd = snser.p_sensor_cmd = sensorAutoCheck(iic_test, NULL);	
 	
