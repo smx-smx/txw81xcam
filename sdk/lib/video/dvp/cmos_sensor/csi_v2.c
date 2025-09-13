@@ -1615,7 +1615,7 @@ bool csi_yuv_mode(){
 	
 	dvp_test = (struct dvp_device *)dev_get(HG_DVP_DEVID);
 	vpp_test = (struct vpp_device *)dev_get(HG_VPP_DEVID);
-	iic_test = (struct i2c_device *)dev_get(HG_I2C2_DEVID);	
+	iic_test = (struct i2c_device *)dev_get(HG_I2C1_DEVID);	
 	scale_dev = (struct scale_device *)dev_get(HG_SCALE1_DEVID);
  
 	dvp_init(dvp_test);
