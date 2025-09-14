@@ -1615,13 +1615,7 @@ bool csi_yuv_mode(){
 	
 	dvp_test = (struct dvp_device *)dev_get(HG_DVP_DEVID);
 	vpp_test = (struct vpp_device *)dev_get(HG_VPP_DEVID);
-	iic_test = (struct i2c_device *)dev_get(HG_I2C2_DEVID);
-	os_printf("I2C bus handle=%p, baud=%lu\r\n", iic_test, (unsigned long)IIC_CLK);
-	if (!iic_test) {
-    os_printf("FATAL: I2C2 dev_get failed\n");
-    return; // or goto a safe fail path before sensorAutoCheck
-}
-
+	iic_test = (struct i2c_device *)dev_get(HG_I2C2_DEVID);	
 	scale_dev = (struct scale_device *)dev_get(HG_SCALE1_DEVID);
  
 	dvp_init(dvp_test);
@@ -1631,7 +1625,6 @@ bool csi_yuv_mode(){
 
 	//iic_init_sensor(IIC_CLK,SENSOR_IIC);
 	i2c_open(iic_test, IIC_MODE_MASTER, IIC_ADDR_7BIT, 0);
-	os_printf("I2C bus handle=%p (expect non-NULL), baud=%d\n", iic_test, IIC_CLK);
 	i2c_set_baudrate(iic_test,IIC_CLK);
 	i2c_ioctl(iic_test,IIC_SDA_OUTPUT_DELAY,20);	
 	i2c_ioctl(iic_test,IIC_FILTERING,20);
