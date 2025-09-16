@@ -235,6 +235,101 @@ static const _Sensor_Adpt_ *devSensorOPTable[] = {
 #endif
 
 };
+// Add this just after devSensorOPTable[] (same #if order as OP table)
+static const char *devSensorNameTable[] = {
+
+#if DEV_SENSOR_GC0308
+    "gc0308",
+#endif
+
+#if DEV_SENSOR_GC0309
+    "gc0309",
+#endif
+
+#if DEV_SENSOR_GC0311
+    "gc0311",
+#endif
+
+#if DEV_SENSOR_GC0312
+    "gc0312",
+#endif
+
+#if DEV_SENSOR_GC0328
+    "gc0328",
+#endif
+
+#if DEV_SENSOR_GC0329
+    "gc0329",
+#endif
+
+#if DEV_SENSOR_BF3A03
+    "bf3a03",
+#endif
+
+#if DEV_SENSOR_BF3703
+    "bf3703",
+#endif
+
+#if DEV_SENSOR_OV2640
+    "ov2640",
+#endif
+
+#if DEV_SENSOR_OV7725
+    "ov7725",
+#endif
+
+#if DEV_SENSOR_OV7670
+    "ov7670",
+#endif
+
+#if DEV_SENSOR_OV7660
+    "ov7660",
+#endif
+
+#if DEV_SENSOR_BF2013
+    "bf2013",
+#endif
+
+#if DEV_SENSOR_XC7016_H63
+    "xc7016_h63",
+#endif
+
+#if DEV_SENSOR_XC7011_H63
+    "xc7011_h63",
+#endif
+
+#if DEV_SENSOR_XC7011_GC1054
+    "xc7011_gc1054",
+#endif
+
+#if DEV_SENSOR_XCG532
+    "xcg532",
+#endif
+
+#if DEV_SENSOR_GC2145
+    "gc2145",
+#endif
+
+#if DEV_SENSOR_SP0718
+    "sp0718",
+#endif
+
+#if DEV_SENSOR_SP0A19
+    "sp0a19",
+#endif
+
+#if DEV_SENSOR_BF3720
+    "bf3720",
+#endif
+
+#if DEV_SENSOR_NT99230
+    "nt99230",
+#endif
+
+#if DEV_SENSOR_IOT101
+    "sc101iot",
+#endif
+};
 
 
 #if IPF_EN
@@ -1006,7 +1101,12 @@ int sensorCheckId(struct i2c_device *p_iic,const _Sensor_Ident_ *p_sensor_ident,
 
 	
 	i2c_read(p_iic,u8Buf,p_sensor_ident->addr_num,(int8*)&id,p_sensor_ident->data_num);
-	os_printf("SID: %x, %x, %x, %x,%x\r\n",id,p_sensor_ident->id,u8SensorwriteID,u8SensorreadID,p_sensor_ident->id_reg);
+	os_printf("SID: id=0x%02x expect=0x%02x addr8={0x%02x,0x%02x} addr7=0x%02x reg=0x%02x\r\n",
+          id, p_sensor_ident->id,
+          u8SensorwriteID, u8SensorreadID,
+          (u8SensorwriteID >> 1),
+          p_sensor_ident->id_reg);
+
 	if(id == p_sensor_ident->id)
 		return 1;
 	else
@@ -1030,17 +1130,24 @@ static _Sensor_Adpt_ * sensorAutoCheck(struct i2c_device *p_iic,uint8 *init_buf)
 	for(i=0;devSensorInitTable[i] != NULL;i++)
 	{		
 		sensor_reset();
-		if(sensorCheckId(p_iic,devSensorInitTable[i],devSensorOPTable[i])>=0)
-		{
-			os_printf("id =%x num:%d \n",devSensorInitTable[i]->id,i);
-			devSensorInit = (_Sensor_Ident_ *) devSensorInitTable[i];
-//#if CMOS_AUTO_LOAD
-//			devSensor_Struct = sensor_adpt_load(devSensorInit->id,devSensorInit->w_cmd,devSensorInit->r_cmd,init_buf);
-//#else
-			devSensor_Struct = (_Sensor_Adpt_ *) devSensorOPTable[i];
-//#endif
-			break;
-		}
+if(sensorCheckId(p_iic,devSensorInitTable[i],devSensorOPTable[i])>=0)
+{
+    devSensorInit   = (_Sensor_Ident_ *) devSensorInitTable[i];
+    devSensor_Struct= (_Sensor_Adpt_ *) devSensorOPTable[i];
+
+    // New, more informative line:
+    os_printf("sensor match: name=%s id=0x%02x num=%d addr7=0x%02x mclk=%d pix=%dx%d\r\n",
+              devSensorNameTable[i],
+              devSensorInit->id,
+              i,
+              (devSensorInit->w_cmd >> 1),   // 7-bit I2C address
+              devSensor_Struct->mclk,
+              devSensor_Struct->pixelw,
+              devSensor_Struct->pixelh);
+
+    break;
+}
+
 	}
 	if(devSensor_Struct == NULL)
 	{
