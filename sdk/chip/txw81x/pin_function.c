@@ -31,6 +31,8 @@
 
 
 __weak void user_pin_func(int dev_id, int request) {};
+extern int dvp_scl;
+extern int dvp_sda;
 
 
 void gpio_iomap_output_iomask(uint32 io_func)
@@ -684,15 +686,15 @@ static int iic_pin_func(int dev_id, int request)
             break;
         case HG_I2C2_DEVID:
             if (request) {
-                gpio_iomap_inout(PIN_IIC2_SCL, GPIO_IOMAP_IN_SPI2_SCK_IN, GPIO_IOMAP_OUT_SPI2_SCK_OUT);
-                gpio_iomap_inout(PIN_IIC2_SDA, GPIO_IOMAP_IN_SPI2_IO0_IN, GPIO_IOMAP_OUT_SPI2_IO0_OUT);
-                gpio_driver_strength(PIN_IIC2_SCL, GPIO_DS_28MA);
-                gpio_driver_strength(PIN_IIC2_SDA, GPIO_DS_28MA);           
-                gpio_set_mode(PIN_IIC2_SCL, GPIO_OPENDRAIN_PULL_UP, GPIO_PULL_LEVEL_4_7K);
-                gpio_set_mode(PIN_IIC2_SDA, GPIO_OPENDRAIN_PULL_UP, GPIO_PULL_LEVEL_4_7K);
+                gpio_iomap_inout(dvp_scl, GPIO_IOMAP_IN_SPI2_SCK_IN, GPIO_IOMAP_OUT_SPI2_SCK_OUT);
+                gpio_iomap_inout(dvp_sda, GPIO_IOMAP_IN_SPI2_IO0_IN, GPIO_IOMAP_OUT_SPI2_IO0_OUT);
+                gpio_driver_strength(dvp_scl, GPIO_DS_28MA);
+                gpio_driver_strength(dvp_sda, GPIO_DS_28MA);
+                gpio_set_mode(dvp_scl, GPIO_OPENDRAIN_PULL_UP, GPIO_PULL_LEVEL_4_7K);
+                gpio_set_mode(dvp_sda, GPIO_OPENDRAIN_PULL_UP, GPIO_PULL_LEVEL_4_7K);
             } else {
-                gpio_set_dir(PIN_IIC2_SCL, GPIO_DIR_INPUT);
-                gpio_set_dir(PIN_IIC2_SDA, GPIO_DIR_INPUT);
+                gpio_set_dir(dvp_scl, GPIO_DIR_INPUT);
+                gpio_set_dir(dvp_sda, GPIO_DIR_INPUT);
             }
             break;
         default:
