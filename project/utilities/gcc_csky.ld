@@ -22,8 +22,8 @@
  ******************************************************************************/
 MEMORY
 {
-		SRAM0   : ORIGIN = 0x20041000 , LENGTH = 0x2c00   /*SRAM0 16 - 4KB - 1k*/
-    SRAM   : ORIGIN = 0x20000004 , LENGTH = 0x3fffc    /* on-chip SRAM 288KB */
+/*		SRAM0   : ORIGIN = 0x20041000 , LENGTH = 0x2c00 */  /*SRAM0 16 - 4KB - 1k*/
+    SRAM   : ORIGIN = 0x20000004 , LENGTH = 0x431fc    /* on-chip SRAM 288KB */
    /* SRAM   : ORIGIN = 0x38000000 , LENGTH = 0x400000 */
     FLASH  : ORIGIN = 0x18000000 , LENGTH = 0x200000 
     PSRAM  : ORIGIN = 0x38000000 , LENGTH = 0x400000 
@@ -31,10 +31,10 @@ MEMORY
 
 __heap_size = 0x11000;
 
-PROVIDE (__ram_end  = 0x20040000);
-PROVIDE (__heap_end = 0x20040000);
-PROVIDE (__sleep_data_start = 0x20040004);
-PROVIDE (__sleep_data_stop  = 0x20040a00);
+PROVIDE (__ram_end  = 0x20043200);
+PROVIDE (__heap_end = 0x20043200);
+PROVIDE (__sleep_data_start = 0x20043200);
+PROVIDE (__sleep_data_stop  = 0x20043bfc);
 PROVIDE (__psram_heap_end = 0x38400000);
 
 REGION_ALIAS("REGION_TEXT",    FLASH);
@@ -47,7 +47,7 @@ REGION_ALIAS("REGION_NOLOAD_PSRAM",    PSRAM);
 REGION_ALIAS("REGION_DATA2",    SRAM);
 REGION_ALIAS("REGION_OTA_VMA",    SRAM);
 REGION_ALIAS("REGION_TEXT2",    SRAM);
-REGION_ALIAS("REGION_DSLEEP",    SRAM0);
+REGION_ALIAS("REGION_DSLEEP",    SRAM);
 
 ENTRY(Reset_Handler)
 SECTIONS
@@ -293,5 +293,4 @@ SECTIONS
 /* ASSERT(DEFINED(ROM_FUNC_ENABLE), "please disable ROM Functions in ld file") */
 /* ASSERT(ADDR(.text) < 0x20000068, "ROM Functions data area conflict!!!")*/
 
- INPUT(romcode.ld) 
-
+INPUT(utilities/romcode.ld)

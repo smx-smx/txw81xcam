@@ -1,0 +1,9 @@
+memset(ibuf, ff);
+read(bin, APP.bin);
+def(LEN, v_lx);
+remap(c00, 0, LEN);
+write(bin, realcode.bin);
+
+
+
+
