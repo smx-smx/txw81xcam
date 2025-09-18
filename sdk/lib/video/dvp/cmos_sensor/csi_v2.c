@@ -141,6 +141,10 @@ static const _Sensor_Ident_ *devSensorInitTable[] = {
 	&hi704_init,
 #endif
 
+#if DEV_SENSOR_SP0828
+	&sp0828_init,
+#endif
+
 	NULL,
 };
 
@@ -242,6 +246,10 @@ static const _Sensor_Adpt_ *devSensorOPTable[] = {
 	&hi704_cmd,
 #endif
 
+#if DEV_SENSOR_SP0828
+	&sp0828_cmd,
+#endif
+
 };
 
 // Keep same order as devSensorOPTable - helps ID which driver is used to init sensor
@@ -341,6 +349,10 @@ static const char *devSensorNameTable[] = {
 
 #if DEV_SENSOR_HI704
     "hi704",
+#endif
+
+#if DEV_SENSOR_SP0828
+    "sp0828",
 #endif
 };
 
