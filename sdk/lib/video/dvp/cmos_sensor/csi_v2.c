@@ -1142,23 +1142,23 @@ static _Sensor_Adpt_ * sensorAutoCheck(struct i2c_device *p_iic,uint8 *init_buf)
 	for(i=0;devSensorInitTable[i] != NULL;i++)
 	{		
 		sensor_reset();
-if(sensorCheckId(p_iic,devSensorInitTable[i],devSensorOPTable[i])>=0)
-{
-    devSensorInit   = (_Sensor_Ident_ *) devSensorInitTable[i];
-    devSensor_Struct= (_Sensor_Adpt_ *) devSensorOPTable[i];
+		if(sensorCheckId(p_iic,devSensorInitTable[i],devSensorOPTable[i])>=0)
+		{
+			devSensorInit   = (_Sensor_Ident_ *) devSensorInitTable[i];
+			devSensor_Struct= (_Sensor_Adpt_ *) devSensorOPTable[i];
 
-    // New, more informative line:
-    os_printf("sensor match: name=%s id=0x%02x num=%d addr7=0x%02x mclk=%d pix=%dx%d\r\n",
-              devSensorNameTable[i],
-              devSensorInit->id,
-              i,
-              (devSensorInit->w_cmd >> 1),   // 7-bit I2C address
-              devSensor_Struct->mclk,
-              devSensor_Struct->pixelw,
-              devSensor_Struct->pixelh);
+			// New, more informative line:
+			os_printf("sensor match: name=%s id=0x%02x num=%d addr7=0x%02x mclk=%d pix=%dx%d\r\n",
+					devSensorNameTable[i],
+					devSensorInit->id,
+					i,
+					(devSensorInit->w_cmd >> 1),   // 7-bit I2C address
+					devSensor_Struct->mclk,
+					devSensor_Struct->pixelw,
+					devSensor_Struct->pixelh);
 
-    break;
-}
+			break;
+		}
 
 	}
 	if(devSensor_Struct == NULL)
