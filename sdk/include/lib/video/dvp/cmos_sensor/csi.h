@@ -302,11 +302,13 @@ void vpp_put_psram(uint32 yuvbuf_addr,uint32 s_w,uint32 s_h);
 #define DEV_SENSOR_BF30A2           (0||CMOS_AUTO_LOAD)
 #endif
 
-
 #ifndef DEV_SENSOR_IOT101
 #define DEV_SENSOR_IOT101           0
 #endif
 
+#ifndef DEV_SENSOR_HI704
+#define DEV_SENSOR_HI704           (0||CMOS_AUTO_LOAD)
+#endif
 
 #if DEV_SENSOR_OV7725
 extern const _Sensor_Ident_ ov7725_init;
@@ -433,6 +435,11 @@ extern SENSOR_OP_SECTION const _Sensor_Adpt_ nt99230_cmd;
 #if DEV_SENSOR_IOT101
 extern const _Sensor_Ident_ sc101iot_init;
 extern SENSOR_OP_SECTION const _Sensor_Adpt_ sc101iot_cmd;
+#endif
+
+#if DEV_SENSOR_HI704
+extern const _Sensor_Ident_ hi704_init;
+extern SENSOR_OP_SECTION const _Sensor_Adpt_ hi704_cmd;
 #endif
 
 #endif
