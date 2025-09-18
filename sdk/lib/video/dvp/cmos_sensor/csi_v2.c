@@ -1148,7 +1148,7 @@ static _Sensor_Adpt_ * sensorAutoCheck(struct i2c_device *p_iic,uint8 *init_buf)
 			devSensor_Struct= (_Sensor_Adpt_ *) devSensorOPTable[i];
 
 			// New, more informative line:
-			os_printf("sensor match: name=%s id=0x%02x num=%d addr7=0x%02x mclk=%d pix=%dx%d\r\n",
+			os_printf("sensor driver match: name=%s id=0x%02x num=%d addr7=0x%02x mclk=%d pix=%dx%d\r\n",
 					devSensorNameTable[i],
 					devSensorInit->id,
 					i,
