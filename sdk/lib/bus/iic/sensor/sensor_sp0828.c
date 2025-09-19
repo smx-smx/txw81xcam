@@ -8,6 +8,45 @@
 
 #if DEV_SENSOR_SP0828
 
+/* --- detect helper: force page 0, then read ID --- */
+static int sp0828_i2c_write8(uint8 w_cmd, uint8 reg, uint8 val)
+{
+    uint8 buf[2] = { reg, val };
+    /* hal_i2c_master_transmit returns 0 on success in this SDK */
+    return hal_i2c_master_transmit(w_cmd, buf, 2);
+}
+
+static int sp0828_i2c_read8(uint8 w_cmd, uint8 r_cmd, uint8 reg, uint8 *out)
+{
+    if (hal_i2c_master_transmit(w_cmd, &reg, 1) != 0)
+        return -1;
+    return hal_i2c_master_receive(r_cmd, out, 1);
+}
+
+/* If the core calls p_fun_adapt[0] during probe, this will make detection reliable. */
+static int sp0828_detect_multi(void)
+{
+    const uint8 w = 0x30; /* 7-bit addr 0x18 -> 8-bit write 0x30 */
+    const uint8 r = 0x31; /*                        read  0x31  */
+    uint8 v = 0;
+
+    /* Force PAGE 0 before reading ID (matches your boot log’s first write {0xFD,0x00}) */
+    if (sp0828_i2c_write8(w, 0xFD, 0x00) != 0)
+        return -1;
+
+    /* Canonical SP0828 ID (from reference drivers) is 0x0C at reg 0x02 */
+    if (sp0828_i2c_read8(w, r, 0x02, &v) == 0 && v == 0x0C)
+        return 0;
+
+    /* Fallbacks: try neighbor regs that some SP modules use */
+    if (sp0828_i2c_read8(w, r, 0x00, &v) == 0 && (v == 0x0C || v == 0x82 || v == 0x28))
+        return 0;
+    if (sp0828_i2c_read8(w, r, 0x01, &v) == 0 && (v == 0x0C || v == 0x82 || v == 0x28))
+        return 0;
+
+    return -1; /* not our chip */
+}
+
 SENSOR_INIT_SECTION static const unsigned char SP0828InitTable[CMOS_INIT_LEN] =
 {
     /* Page 0 / misc bring-up */
@@ -71,8 +110,8 @@ SENSOR_INIT_SECTION static const unsigned char SP0828InitTable[CMOS_INIT_LEN] =
 
     /* Page 0 — color matrices / WB / shading */
     0xfd,0x00,
-    0xe8,0x30, 0xe9,0x30, 0xea,0x40,
-    0xf4,0x1b, 0xf5,0x97,
+    0	e8,0x30, 0xe9,0x30, 0xea,0x40,
+    0xf4,0x1b, 0	f5,0x97,
     0xec,0x53, 0xed,0x78, 0xee,0x47, 0xef,0x6c,
     0xf7,0x70, 0xf8,0x5b, 0xf9,0x64, 0xfa,0x4f,
 
@@ -117,13 +156,14 @@ SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
     .rotate_adapt = {0},
     .hvb_adapt    = {0x80,0x0a,0x80,0x0a},
     .mclk = 24000000,    // 24 MHz typical
-    .p_fun_adapt = {NULL,NULL,NULL},
+    .p_fun_adapt = { sp0828_detect_multi, NULL, NULL },  /* <— detect callback */
     .p_xc7016_adapt = {NULL},
 };
 
 const _Sensor_Ident_ sp0828_init =
 {
-    0x0C, 0x30, 0x31, 0x01, 0x01, 0x00
+    /* id   , w_cmd, r_cmd, addr_num, data_num, id_reg */
+    0x0C,   0x30,  0x31,   0x01,     0x01,     0x02
 };
 
 #endif
