@@ -123,8 +123,7 @@ SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
 
 const _Sensor_Ident_ sp0828_init =
 {
-    /* id    , w_cmd, r_cmd, addr_num, data_num, id_reg */
-    0x00,     0x30,  0x31,   0x01,     0x01,     0x00
+    0x82,0x30,0x31,0x01,0x01,0x02
 };
 
 #endif
