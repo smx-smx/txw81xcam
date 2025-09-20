@@ -112,8 +112,8 @@ SENSOR_INIT_SECTION static const unsigned char SP0828InitTable[CMOS_INIT_LEN] = 
 
 SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd = {
     .typ       = 1,            // YUV
-    .pixelw    = 640,
-    .pixelh    = 480,
+    .pixelw    = 320,
+    .pixelh    = 240,
     .hsyn      = 1,
     .vsyn      = 1,
     .rduline   = 0,
