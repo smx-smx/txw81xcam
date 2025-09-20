@@ -40,6 +40,45 @@ SNSER snser;
 struct dvp_device *dvp_test;
 struct i2c_device *iic_test;
 struct vpp_device *vpp_test;
+/* ------------ SP0828 debug helpers (safe to keep even when not used) --------- */
+static void sp0828_set_page(struct i2c_device *dev, uint8 page)
+{
+    uint8 reg = 0xFD, val = page;
+    i2c_write(dev, (int8*)&reg, 1, (int8*)&val, 1);
+}
+
+static void sp0828_dump_range(struct i2c_device *dev, uint8 page, uint8 start, uint8 end)
+{
+    uint8 r, v;
+    sp0828_set_page(dev, page);
+    for (r = start; r <= end; r++) {
+        uint8 rr = r;
+        i2c_read(dev, (int8*)&rr, 1, (int8*)&v, 1);
+        os_printf("[SP0828] P%u [0x%02X] = 0x%02X\r\n", page, r, v);
+        if (r == 0xFF) break; /* safety */
+    }
+}
+
+static void sp0828_dump_keys_p1(struct i2c_device *dev)
+{
+    static const uint8 keys[] = {
+        0x31,0x33,0x34,0x35,
+        0x4F,0x50,0x51,0x52,0x53,0x54,
+        0x56,0x57,0x58,0x59,
+        0x65,0x66,0x67,0x68,0x69,0x6A,
+        0x6B,0x6C,0x6D,0x6E,0x6F,0x70,
+        0x71,0x72,0x73,0x74,0x75,0x76
+    };
+    uint8 i, v, rr;
+    sp0828_set_page(dev, 1);
+    for (i = 0; i < sizeof(keys); i++) {
+        rr = keys[i];
+        i2c_read(dev, (int8*)&rr, 1, (int8*)&v, 1);
+        os_printf("[SP0828] P1 [0x%02X] = 0x%02X\r\n", rr, v);
+    }
+}
+/* --------------------------------------------------------------------------- */
+
 
 
 static const _Sensor_Ident_ *devSensorInitTable[] = {
@@ -1863,7 +1902,15 @@ bool csi_yuv_mode(){
 			}
 			
 	}
-	i2c_close(iic_test);
+	
+    /* SP0828: dump some regs before CSI starts (runs only for address 0x18) */
+    if ( (p_sensor_cmd->w_cmd >> 1) == 0x18 ) {
+        os_printf("==== SP0828 pre-CSI dump ====\r\n");
+        sp0828_dump_range(iic_test, 0, 0x00, 0x3F);  /* Page 0: 0x00..0x3F */
+        sp0828_dump_keys_p1(iic_test);               /* Page 1: selected keys */
+        os_printf("==== end dump ====\r\n");
+    }
+i2c_close(iic_test);
 	
 	os_printf("SENSR ident ok:%d*%d\r\n",p_sensor_cmd->pixelw,p_sensor_cmd->pixelh);
 
@@ -1880,9 +1927,7 @@ bool csi_yuv_mode(){
 	photo_msg.out0_w = image_w;
 
 	// ... after sensor matched and its init table has run
-	os_printf("SENSR ident ok:%d*%d\r\n", p_sensor_adpt->pixelw, p_sensor_adpt->pixelh);
-
-	// >>> INSERT THIS BLOCK <<<
+// >>> INSERT THIS BLOCK <<<
 	extern void *iic_test;              // already used in this file
 	// If you want to restrict to sp0828 only, guard on 7-bit addr 0x18 if you have it:
 	// if (addr7 == 0x18) {
@@ -1895,7 +1940,7 @@ bool csi_yuv_mode(){
 	// Now proceed to start CSI
 	os_printf("csi init start  --\r\n");
 
-	return;
+
 	//3:init csi
 
 	os_printf("csi init start  --\r\n");
