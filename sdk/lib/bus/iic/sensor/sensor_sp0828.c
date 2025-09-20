@@ -112,6 +112,16 @@ SENSOR_INIT_SECTION static const unsigned char SP0828InitTable[CMOS_INIT_LEN] =
     0xff,0xff,
 };
 
+SENSOR_INIT_SECTION static const unsigned char SP0828prewriteInitTable[CMOS_INIT_LEN]={
+	0xFD,0x00,
+	0x1C,0x00,
+	0x30,0x00,
+	0x31,0x00,
+	-1,-1
+};
+
+
+
 SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
 {
     .typ = 1,            // YUV
@@ -123,6 +133,7 @@ SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
     .rawwide = 1,        // 10-bit
     .colrarray = 2,      // BG/GR (match template; adjust if needed)
     .init = (uint8 *)SP0828InitTable,
+	.preset = (uint8 *)SP0828prewriteInitTable,
     .rotate_adapt = {0},
     .hvb_adapt    = {0x80,0x0a,0x80,0x0a},
     .mclk = 24000000,    // 24 MHz typical
