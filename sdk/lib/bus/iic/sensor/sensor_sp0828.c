@@ -110,8 +110,12 @@ SENSOR_INIT_SECTION static const unsigned char SP0828InitTable[CMOS_INIT_LEN] =
     /* Post-init writes observed after stream start */
     0x62,0x00, 0x63,0x80, 0x64,0x80,
 
+    /* Settle delay so the sensor stabilizes before CSI opens */
+    0xFE,0xFE,0x01,   // 100 ms delay (repeat this line for 200 ms, etc.)
+
     /* Terminator */
-    0xff,0xff,
+    0xFF,0xFF,
+
 };
 
 // -----------------------------
@@ -135,7 +139,7 @@ SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
     .pixelw = 640,       // QVGA; set 640/480 for VGA if you switch modes
     .pixelh = 480,
     .hsyn = 0,           // keep platform polarity as you had
-    .vsyn = 0,
+    .vsyn = 1,
     .rduline = 0,
     .rawwide = 0,        // 8-bit DVP bus for YUV
     .colrarray = 2,      // match template driver
