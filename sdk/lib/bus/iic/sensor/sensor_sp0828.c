@@ -94,7 +94,7 @@ SENSOR_INIT_SECTION static const unsigned char SP0828InitTable[CMOS_INIT_LEN] =
     0xc2,0x41, 0xc3,0x41, 0xc4,0x41, 0xc5,0x70, 0xc6,0x41, 0xca,0x70, 0xcb,0x0c,
 
     /* Page 0 — final timing */
-    0xfd,0x00, 0xfd,0x00,
+    0xfd,0x00,
     0x32,0x15, 0x34,0x66, 0x35,0x40, 0x1b,0x07,
 
     /* Post-init writes observed after stream start */
@@ -112,7 +112,6 @@ SENSOR_INIT_SECTION static const unsigned char SP0828prewriteInitTable[CMOS_INIT
 	0xFF,0xFF
 };
 
-
 SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
 {
     .typ = 1,            // YUV
@@ -121,20 +120,20 @@ SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
     .hsyn = 0,
     .vsyn = 1,
     .rduline = 0,
-    .rawwide = 0,        // 10-bit
+    .rawwide = 0,        // 8-bit bus (YUV)
     .colrarray = 2,      // match template
     .init = (uint8 *)SP0828InitTable,
 	.preset = (uint8 *)SP0828prewriteInitTable,
     .rotate_adapt = {0},
     .hvb_adapt    = {0x80,0x0a,0x80,0x0a},
-    .mclk = 26000000,    // 24 MHz typical
+    .mclk = 26000000,    // ~26 MHz (156/6)
     .p_fun_adapt = { NULL, NULL, NULL },   // no detect hook here
     .p_xc7016_adapt = {NULL},
 };
 
 const _Sensor_Ident_ sp0828_init =
 {
-    	/* id   , w_cmd, r_cmd, addr_num, data_num, id_reg */
+		/* id   , w_cmd, r_cmd, addr_num, data_num, id_reg */
 	0x08,  0x30,  0x31,  0x01,     0x01,     0x02
 };
 
