@@ -1926,22 +1926,7 @@ i2c_close(iic_test);
 	photo_msg.out0_h = image_h;
 	photo_msg.out0_w = image_w;
 
-	// ... after sensor matched and its init table has run
-// >>> INSERT THIS BLOCK <<<
-	//extern void *iic_test;              // already used in this file
-	// If you want to restrict to sp0828 only, guard on 7-bit addr 0x18 if you have it:
-	// if (addr7 == 0x18) {
-	os_printf("==== SP0828 pre-CSI dump ====\r\n");
-	sp0828_dump_range(iic_test, /*page*/0, 0x00, 0x3F);
-	sp0828_dump_keys_p1(iic_test);
-	os_printf("==== end dump ====\r\n");
-	// } // end optional guard
-
-	// Now proceed to start CSI
-	os_printf("csi init start  --\r\n");
-
-
-	//3:init csi
+//3:init csi
 
 	os_printf("csi init start  --\r\n");
 	os_printf("csi set size ====>%d*%d\r\n",image_w,image_h);
