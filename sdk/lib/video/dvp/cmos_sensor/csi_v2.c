@@ -1966,7 +1966,7 @@ i2c_close(iic_test);
 	dvp_set_half_size(dvp_test,1);
 #endif 
 
-	dvp_set_exchange_d5_d6(dvp_test,0);
+	dvp_set_exchange_d5_d6(dvp_test,1);
 
 	dvp_set_hsync_polarity(dvp_test,p_sensor_cmd->hsyn);
 	dvp_set_vsync_polarity(dvp_test,p_sensor_cmd->vsyn);
