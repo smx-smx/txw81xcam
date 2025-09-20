@@ -40,7 +40,8 @@ SNSER snser;
 struct dvp_device *dvp_test;
 struct i2c_device *iic_test;
 struct vpp_device *vpp_test;
-/* ------------ SP0828 debug helpers (robust, with return checks) ------------- */
+
+/* ------------ SP0828 debug helpers (robust with return checks) ------------- */
 static int sp0828_i2c_write_u8(struct i2c_device *dev, uint8 reg, uint8 val)
 {
     return i2c_write(dev, (int8*)&reg, 1, (int8*)&val, 1);
@@ -56,23 +57,29 @@ static int sp0828_set_page(struct i2c_device *dev, uint8 page)
 static void sp0828_dump_block(struct i2c_device *dev, uint8 page, const char *label, const uint8 *regs, unsigned n)
 {
     int rc = sp0828_set_page(dev, page);
-    os_printf("[SP0828] %s: set page %u => %s\r\n", label, page, (rc==0)?"OK":"NAK");
+    os_printf("[SP0828] %s: set page %u => %s
+", label, page, (rc==0)?"OK":"NAK");
     for (unsigned i=0;i<n;i++) {
         uint8 r = regs[i], v = 0xFF;
         rc = sp0828_i2c_read_u8(dev, r, &v);
-        if (rc==0) os_printf("[SP0828] P%u [0x%02X] = 0x%02X\r\n", page, r, v);
-        else       os_printf("[SP0828] P%u [0x%02X] = -- (NAK)\r\n", page, r);
+        if (rc==0) os_printf("[SP0828] P%u [0x%02X] = 0x%02X
+", page, r, v);
+        else       os_printf("[SP0828] P%u [0x%02X] = -- (NAK)
+", page, r);
     }
 }
 static void sp0828_dump_range(struct i2c_device *dev, uint8 page, uint8 from, uint8 to, const char *label)
 {
     int rc = sp0828_set_page(dev, page);
-    os_printf("[SP0828] %s: set page %u => %s\r\n", label?label:"range", page, (rc==0)?"OK":"NAK");
+    os_printf("[SP0828] %s: set page %u => %s
+", label?label:"range", page, (rc==0)?"OK":"NAK");
     for (uint8 r = from; ; r++) {
         uint8 v = 0xFF;
         rc = sp0828_i2c_read_u8(dev, r, &v);
-        if (rc==0) os_printf("[SP0828] P%u [0x%02X] = 0x%02X\r\n", page, r, v);
-        else       os_printf("[SP0828] P%u [0x%02X] = -- (NAK)\r\n", page, r);
+        if (rc==0) os_printf("[SP0828] P%u [0x%02X] = 0x%02X
+", page, r, v);
+        else       os_printf("[SP0828] P%u [0x%02X] = -- (NAK)
+", page, r);
         if (r==to) break;
     }
 }
@@ -80,30 +87,30 @@ static void sp0828_superdump(struct i2c_device *dev)
 {
     /* Quick ID check */
     uint8 id = 0xFF;
-    sp0828_set_page(dev, 0);
-    if (sp0828_i2c_read_u8(dev, 0x02, &id)==0)
-        os_printf("[SP0828] ID P0[0x02] = 0x%02X\r\n", id);
+    if (sp0828_set_page(dev, 0)==0 && sp0828_i2c_read_u8(dev, 0x02, &id)==0)
+        os_printf("[SP0828] ID P0[0x02] = 0x%02X
+", id);
     else
-        os_printf("[SP0828] ID read NAK\r\n");
+        os_printf("[SP0828] ID read NAK
+");
 
-    /* Likely-interesting Page 0 regions */
-    sp0828_dump_range(dev, 0, 0x00, 0x0F, "P0 core");
-    sp0828_dump_range(dev, 0, 0x30, 0x3F, "P0 sync/format");
-    sp0828_dump_range(dev, 0, 0x50, 0x5F, "P0 timing/blank");
-    /* Bits seen in OEM tables */
-    {
-        const uint8 regsE[] = { 0xE0,0xE1,0xE2,0xE3,0xE4,0xE5,0xE6 };
-        sp0828_dump_block(dev, 0, "P0 E0..E6", regsE, sizeof(regsE));
-        const uint8 regsF[] = { 0xF0,0xF1,0xF2,0xF4,0xF5,0xF7,0xF8,0xF9 };
-        sp0828_dump_block(dev, 0, "P0 F0..F9", regsF, sizeof(regsF));
-    }
+    /* Page 0 core & sync/timing */
+    sp0828_dump_range(dev, 0, 0x00, 0x0F, "P0 core 00..0F");
+    sp0828_dump_range(dev, 0, 0x30, 0x3F, "P0 sync/format 30..3F");
+    sp0828_dump_range(dev, 0, 0x50, 0x5F, "P0 timing/blank 50..5F");
+    /* OEM-touched blocks */
+    { const uint8 regsE[] = {0xE0,0xE1,0xE2,0xE3,0xE4,0xE5,0xE6};
+      sp0828_dump_block(dev, 0, "P0 E0..E6", regsE, sizeof(regsE)); }
+    { const uint8 regsF[] = {0xF0,0xF1,0xF2,0xF4,0xF5,0xF7,0xF8,0xF9};
+      sp0828_dump_block(dev, 0, "P0 F0..F9", regsF, sizeof(regsF)); }
 
-    /* Page 1 keys (AE/gain/timing knobs from OEM init) */
+    /* Page 1 keys (AE/gain/timing) */
     {
         const uint8 keys1[] = {
             0x09,0x0A,0x0B, 0x14,0x15,
             0x25,0x26,0x28,0x29, 0x31,0x32,
-            0x41,0x42, 0x4D,0x4E, 0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E, 0x5F,0x60,
+            0x41,0x42, 0x4D,0x4E,
+            0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E, 0x5F,0x60,
             0x65,0x66,0x67,0x68,0x69,0x6A,0x6B,0x6C,0x6D,0x6E,0x6F,0x70,0x71,0x72,0x73,0x74,0x75,0x76,
             0x7F,0x80,0x81,0x82,0x83,0x84,0x85,0x86,0x87,0x88,0x89,0x8A,0x8B,0x8C,0x8D,0x8E
         };
@@ -111,6 +118,7 @@ static void sp0828_superdump(struct i2c_device *dev)
     }
 }
 /* --------------------------------------------------------------------------- */
+
 
 
 
@@ -1936,7 +1944,15 @@ bool csi_yuv_mode(){
 			
 	}
 	
-    /* SP0828: superdump before closing I2C (only for 7-bit addr 0x18) */
+    /* SP0828: dump some regs before CSI starts (runs only for address 0x18) */
+    if ( (p_sensor_cmd->w_cmd >> 1) == 0x18 ) {
+        os_printf("==== SP0828 pre-CSI dump ====\r\n");
+        sp0828_dump_range(iic_test, 0, 0x00, 0x3F);  /* Page 0: 0x00..0x3F */
+        sp0828_dump_keys_p1(iic_test);               /* Page 1: selected keys */
+        os_printf("==== end dump ====\r\n");
+    }
+
+    /* SP0828: SUPERDUMP before closing I2C (only when matched addr7 == 0x18) */
     if ((p_sensor_cmd->w_cmd >> 1) == 0x18) {
         os_printf("==== SP0828 SUPERDUMP (pre-CSI) ====\r\n");
         os_printf("[SP0828] driver cfg: %ux%u, hsyn=%u vsyn=%u\r\n",
@@ -1961,7 +1977,22 @@ i2c_close(iic_test);
 	photo_msg.out0_h = image_h;
 	photo_msg.out0_w = image_w;
 
-//3:init csi
+	// ... after sensor matched and its init table has run
+// >>> INSERT THIS BLOCK <<<
+	//extern void *iic_test;              // already used in this file
+	// If you want to restrict to sp0828 only, guard on 7-bit addr 0x18 if you have it:
+	// if (addr7 == 0x18) {
+	os_printf("==== SP0828 pre-CSI dump ====\r\n");
+	sp0828_dump_range(iic_test, /*page*/0, 0x00, 0x3F);
+	sp0828_dump_keys_p1(iic_test);
+	os_printf("==== end dump ====\r\n");
+	// } // end optional guard
+
+	// Now proceed to start CSI
+	os_printf("csi init start  --\r\n");
+
+
+	//3:init csi
 
 	os_printf("csi init start  --\r\n");
 	os_printf("csi set size ====>%d*%d\r\n",image_w,image_h);
