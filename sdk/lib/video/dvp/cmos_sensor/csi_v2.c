@@ -1937,17 +1937,16 @@ bool csi_yuv_mode(){
 	}
 	
     
-    /* SP0828: SUPERDUMP before closing I2C (address 0x18) */
-    if ((p_sensor_cmd->w_cmd >> 1) == 0x18) {
-        os_printf("==== SP0828 SUPERDUMP (pre-CSI) ====
-");
-        os_printf("[SP0828] driver cfg: %ux%u, hsyn=%u vsyn=%u
-",
-                  (unsigned)p_sensor_cmd->pixelw, (unsigned)p_sensor_cmd->pixelh,
-                  (unsigned)p_sensor_cmd->hsyn, (unsigned)p_sensor_cmd->vsyn);
-        sp0828_superdump(iic_test);
-        os_printf("==== END SUPERDUMP ====
-");
+/* SP0828: SUPERDUMP before closing I2C (address 0x18) */
+if ((p_sensor_cmd->w_cmd >> 1) == 0x18) {
+    os_printf("==== SP0828 SUPERDUMP (pre-CSI) ====\r\n");
+    os_printf("[SP0828] driver cfg: %ux%u, hsyn=%u vsyn=%u\r\n",
+              (unsigned)p_sensor_cmd->pixelw, (unsigned)p_sensor_cmd->pixelh,
+              (unsigned)p_sensor_cmd->hsyn, (unsigned)p_sensor_cmd->vsyn);
+    sp0828_superdump(iic_test);
+    os_printf("==== END SUPERDUMP ====\r\n");
+}
+/* End SP0828 block */
     }
 
 i2c_close(iic_test);
