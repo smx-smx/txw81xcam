@@ -9,6 +9,14 @@
 
 #if DEV_SENSOR_SP0828
 
+/*
+ * TEMPORARY DETECTION NOTE:
+ * On this board the sensor returns 0xFF for register reads until MCLK and RESET are active.
+ * To let the pipeline start (which enables MCLK etc.), we temporarily detect by expecting
+ * 0xFF at page0/reg 0x00. Once video is up, use `scanI2Cpeek` to find the true ID register
+ * (likely 0x02 → 0x0C for SP0828) and update the _Sensor_Ident_ below.
+ */
+
 SENSOR_INIT_SECTION static const unsigned char SP0828InitTable[CMOS_INIT_LEN] =
 {
     /* Page 0 / misc bring-up */
@@ -58,11 +66,11 @@ SENSOR_INIT_SECTION static const unsigned char SP0828InitTable[CMOS_INIT_LEN] =
 
     /* Page 0 — lens/edge/AE windows etc. */
     0xfd,0x00,
-    0xca,0xcf, 0xcb,0x07, 0xcc,0x04, 0xce,0xff,
+    0xca,0xcf, 0	cb,0x07, 0xcc,0x04, 0xce,0xff,
     0xcf,0x10, 0xd0,0x20, 0xd1,0x00, 0xd2,0x1c, 0xd3,0x16, 0xd4,0x00,
     0xd6,0x1c, 0xd7,0x16, 0xdd,0x6c, 0xde,0xa0,
 
-    /* Contrast curve (?) */
+    /* Contrast curve */
     0xb9,0x00, 0xba,0x04, 0xbb,0x08, 0xbc,0x10, 0xbd,0x20, 0xbe,0x30,
     0xbf,0x40, 0xc0,0x50, 0xc1,0x60, 0xc2,0x70, 0xc3,0x80, 0xc4,0x90,
     0xc5,0xa0, 0xc6,0xb0, 0xc7,0xc0, 0xc8,0xd0, 0xc9,0xe0,
@@ -81,7 +89,7 @@ SENSOR_INIT_SECTION static const unsigned char SP0828InitTable[CMOS_INIT_LEN] =
     0xfd,0x01,
     0x09,0x31, 0x0a,0x85, 0x0b,0x0b, 0x14,0x20, 0x15,0x0f,
 
-    /* Page 0 — PLL/timing (?) */
+    /* Page 0 — PLL/timing */
     0xfd,0x00,
     0x05,0x00, 0x06,0xfe, 0x09,0x02, 0x0a,0x4d,
     0xf0,0x47, 0xf1,0x00, 0xf2,0x59, 0xf5,0x72,
@@ -104,36 +112,33 @@ SENSOR_INIT_SECTION static const unsigned char SP0828InitTable[CMOS_INIT_LEN] =
     0xff,0xff,
 };
 
-SENSOR_INIT_SECTION static const unsigned char SP0828prewriteInitTable[CMOS_INIT_LEN]={
-	0xFD,0x00,
-	-1,-1
-};
-
-
-
 SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
 {
     .typ = 1,            // YUV
-    .pixelw = 640,       // keep as in your current file
+    .pixelw = 640,
     .pixelh = 480,
     .hsyn = 1,
     .vsyn = 0,
     .rduline = 0,
     .rawwide = 1,        // 10-bit
-    .colrarray = 2,      // match template
+    .colrarray = 2,      // BG/GR (match template; adjust if needed)
     .init = (uint8 *)SP0828InitTable,
-	.preset = (uint8 *)SP0828prewriteInitTable,
     .rotate_adapt = {0},
     .hvb_adapt    = {0x80,0x0a,0x80,0x0a},
     .mclk = 24000000,    // 24 MHz typical
-    .p_fun_adapt = { NULL, NULL, NULL },   // no detect hook here
+    .p_fun_adapt = {NULL,NULL,NULL},
     .p_xc7016_adapt = {NULL},
 };
 
+/*
+ * TEMP detection tuple:
+ *   id=0xFF at reg 0x00 (page 0), 8-bit addr/data, write cmd 0x30, read cmd 0x31.
+ * After MCLK is up, replace with real ID, e.g.:
+ *   { 0x0C, 0x30, 0x31, 0x01, 0x01, 0x02 }
+ */
 const _Sensor_Ident_ sp0828_init =
 {
-    /* id   , w_cmd, r_cmd, addr_num, data_num, id_reg */
-    0x0C,   0x30,  0x31,   0x01,     0x01,     0x02
+    0xFF, 0x30, 0x31, 0x01, 0x01, 0x00
 };
 
 #endif
