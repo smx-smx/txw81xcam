@@ -116,8 +116,8 @@ SENSOR_INIT_SECTION static const unsigned char SP0828prewriteInitTable[CMOS_INIT
 SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
 {
     .typ = 1,            // YUV
-    .pixelw = 320,       // keep as in your current file
-    .pixelh = 240,
+    .pixelw = 640,       // keep as in your current file
+    .pixelh = 480,
     .hsyn = 0,
     .vsyn = 1,
     .rduline = 0,
@@ -127,7 +127,7 @@ SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
 	.preset = (uint8 *)SP0828prewriteInitTable,
     .rotate_adapt = {0},
     .hvb_adapt    = {0x80,0x0a,0x80,0x0a},
-    .mclk = 24000000,    // 24 MHz typical
+    .mclk = 26000000,    // 24 MHz typical
     .p_fun_adapt = { NULL, NULL, NULL },   // no detect hook here
     .p_xc7016_adapt = {NULL},
 };
