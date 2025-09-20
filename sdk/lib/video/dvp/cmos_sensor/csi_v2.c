@@ -1928,7 +1928,7 @@ i2c_close(iic_test);
 
 	// ... after sensor matched and its init table has run
 // >>> INSERT THIS BLOCK <<<
-	extern void *iic_test;              // already used in this file
+	//extern void *iic_test;              // already used in this file
 	// If you want to restrict to sp0828 only, guard on 7-bit addr 0x18 if you have it:
 	// if (addr7 == 0x18) {
 	os_printf("==== SP0828 pre-CSI dump ====\r\n");
