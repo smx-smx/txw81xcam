@@ -1,4 +1,11 @@
-// sensor_sp0828.c — SP0828 (SuperPix) camera sensor driver
+// sensor_sp0828.c — SP0828 (SuperPix) camera sensor driver (revised)
+/*
+ * Notes:
+ * - Platform cam clock is 156 MHz / div. Use div=6 (~26 MHz) for probe/bring-up.
+ * - I2C 7-bit address: 0x18  => write: 0x30, read: 0x31
+ * - ID register: 0x02 should read 0x0C on SP0828 in this platform’s reference.
+ */
+
 #include "sys_config.h"
 #include "typesdef.h"
 #include "lib/video/dvp/cmos_sensor/csi.h"
@@ -9,6 +16,9 @@
 
 #if DEV_SENSOR_SP0828
 
+// -----------------------------
+// Main init table (bring-up)
+// -----------------------------
 SENSOR_INIT_SECTION static const unsigned char SP0828InitTable[CMOS_INIT_LEN] =
 {
     /* Page 0 / misc bring-up */
@@ -62,7 +72,7 @@ SENSOR_INIT_SECTION static const unsigned char SP0828InitTable[CMOS_INIT_LEN] =
     0xcf,0x10, 0xd0,0x20, 0xd1,0x00, 0xd2,0x1c, 0xd3,0x16, 0xd4,0x00,
     0xd6,0x1c, 0xd7,0x16, 0xdd,0x6c, 0xde,0xa0,
 
-    /* Contrast curve (?) */
+    /* Contrast curve */
     0xb9,0x00, 0xba,0x04, 0xbb,0x08, 0xbc,0x10, 0xbd,0x20, 0xbe,0x30,
     0xbf,0x40, 0xc0,0x50, 0xc1,0x60, 0xc2,0x70, 0xc3,0x80, 0xc4,0x90,
     0xc5,0xa0, 0xc6,0xb0, 0xc7,0xc0, 0xc8,0xd0, 0xc9,0xe0,
@@ -81,7 +91,7 @@ SENSOR_INIT_SECTION static const unsigned char SP0828InitTable[CMOS_INIT_LEN] =
     0xfd,0x01,
     0x09,0x31, 0x0a,0x85, 0x0b,0x0b, 0x14,0x20, 0x15,0x0f,
 
-    /* Page 0 — PLL/timing (?) */
+    /* Page 0 — PLL/timing */
     0xfd,0x00,
     0x05,0x00, 0x06,0xfe, 0x09,0x02, 0x0a,0x4d,
     0xf0,0x47, 0xf1,0x00, 0xf2,0x59, 0xf5,0x72,
@@ -104,37 +114,47 @@ SENSOR_INIT_SECTION static const unsigned char SP0828InitTable[CMOS_INIT_LEN] =
     0xff,0xff,
 };
 
-SENSOR_INIT_SECTION static const unsigned char SP0828prewriteInitTable[CMOS_INIT_LEN]={
-	0xFD,0x00,
-	0x1C,0x00,
-	0x30,0x00,
-	0x31,0x00,
-	0xFF,0xFF
+// -----------------------------
+// Optional prewrite (kept, but not required for probe)
+// -----------------------------
+SENSOR_INIT_SECTION static const unsigned char SP0828prewriteInitTable[CMOS_INIT_LEN] =
+{
+    0xFD,0x00,
+    0x1C,0x00,
+    0x30,0x00,
+    0x31,0x00,
+    0xFF,0xFF
 };
 
+// -----------------------------
+// Adapter descriptor
+// -----------------------------
 SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
 {
     .typ = 1,            // YUV
-    .pixelw = 640,       // keep as in your current file
-    .pixelh = 480,
-    .hsyn = 0,
+    .pixelw = 320,       // QVGA; set 640/480 for VGA if you switch modes
+    .pixelh = 240,
+    .hsyn = 0,           // keep platform polarity as you had
     .vsyn = 1,
     .rduline = 0,
-    .rawwide = 0,        // 8-bit bus (YUV)
-    .colrarray = 2,      // match template
+    .rawwide = 0,        // 8-bit DVP bus for YUV
+    .colrarray = 2,      // match template driver
     .init = (uint8 *)SP0828InitTable,
-	.preset = (uint8 *)SP0828prewriteInitTable,
-    .rotate_adapt = {0},
+    .preset = (uint8 *)SP0828prewriteInitTable,
+    .rotate_adapt = (uint8 [4]){0},
     .hvb_adapt    = {0x80,0x0a,0x80,0x0a},
-    .mclk = 26000000,    // ~26 MHz (156/6)
-    .p_fun_adapt = { NULL, NULL, NULL },   // no detect hook here
-    .p_xc7016_adapt = {NULL},
+    .mclk = 26000000,    // ~26 MHz (156/6) to match reference probe
+    .p_fun_adapt = { NULL, NULL, NULL },   // no custom detect hook
+    .p_xc7016_adapt = { NULL },
 };
 
+// -----------------------------
+// Chip ID (probe expects reg 0x02 == 0x0C)
+// -----------------------------
 const _Sensor_Ident_ sp0828_init =
 {
-		/* id   , w_cmd, r_cmd, addr_num, data_num, id_reg */
-	0x08,  0x30,  0x31,  0x01,     0x01,     0x02
+    /* id   , w_cmd, r_cmd, addr_num, data_num, id_reg */
+    0x0C,    0x30,  0x31,    0x01,     0x01,     0x02
 };
 
-#endif
+#endif // DEV_SENSOR_SP0828
