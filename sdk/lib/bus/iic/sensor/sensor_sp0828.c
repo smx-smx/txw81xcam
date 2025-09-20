@@ -116,10 +116,10 @@ SENSOR_INIT_SECTION static const unsigned char SP0828prewriteInitTable[CMOS_INIT
 SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
 {
     .typ = 1,            // YUV
-    .pixelw = 640,       // keep as in your current file
-    .pixelh = 480,
+    .pixelw = 320,       // keep as in your current file
+    .pixelh = 240,
     .hsyn = 0,
-    .vsyn = 0,
+    .vsyn = 1,
     .rduline = 0,
     .rawwide = 1,        // 10-bit
     .colrarray = 2,      // match template
