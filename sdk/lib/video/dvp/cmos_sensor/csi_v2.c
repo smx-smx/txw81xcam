@@ -1895,7 +1895,7 @@ bool csi_yuv_mode(){
 	// Now proceed to start CSI
 	os_printf("csi init start  --\r\n");
 
-
+	return;
 	//3:init csi
 
 	os_printf("csi init start  --\r\n");
