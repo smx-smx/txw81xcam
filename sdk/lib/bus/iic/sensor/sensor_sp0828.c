@@ -132,8 +132,8 @@ SENSOR_INIT_SECTION static const unsigned char SP0828prewriteInitTable[CMOS_INIT
 SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
 {
     .typ = 1,            // YUV
-    .pixelw = 320,       // QVGA; set 640/480 for VGA if you switch modes
-    .pixelh = 240,
+    .pixelw = 640,       // QVGA; set 640/480 for VGA if you switch modes
+    .pixelh = 480,
     .hsyn = 0,           // keep platform polarity as you had
     .vsyn = 1,
     .rduline = 0,
