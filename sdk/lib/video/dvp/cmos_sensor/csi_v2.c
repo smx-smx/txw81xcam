@@ -1954,7 +1954,7 @@ i2c_close(iic_test);
 	}
 	
 #if SCEN_EN	
-	//dvp_set_size(dvp_test,0,0,image_w*2-1,image_h*2-1);
+	dvp_set_size(dvp_test,0,0,image_w*2-1,image_h*2-1);
 	vpp_set_video_size(vpp_test,image_w*2,image_h*2);
 #else
 	os_printf("csi dvp_size_set\r\n\r\n");
