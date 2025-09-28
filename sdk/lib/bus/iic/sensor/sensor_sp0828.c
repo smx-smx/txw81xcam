@@ -136,8 +136,8 @@ SENSOR_INIT_SECTION static const unsigned char SP0828prewriteInitTable[CMOS_INIT
 SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
 {
     .typ = 1,            // YUV
-    .pixelw = 640,       // QVGA; set 640/480 for VGA if you switch modes
-    .pixelh = 480,
+    .pixelw = 240,       // QVGA; set 640/480 for VGA if you switch modes
+    .pixelh = 320,
     .hsyn = 1,           // keep platform polarity as you had
     .vsyn = 0,
     .rduline = 0,
@@ -147,7 +147,7 @@ SENSOR_OP_SECTION const _Sensor_Adpt_ sp0828_cmd =
     .preset = (uint8 *)SP0828prewriteInitTable,
     .rotate_adapt = (uint8 [4]){0},
     .hvb_adapt    = {0x80,0x0a,0x80,0x0a},
-    .mclk = 26000000,    // ~26 MHz (156/6) to match reference probe
+    .mclk = 24000000,
     .p_fun_adapt = { NULL, NULL, NULL },   // no custom detect hook
     .p_xc7016_adapt = { NULL },
 };
