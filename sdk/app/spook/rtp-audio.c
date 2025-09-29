@@ -72,7 +72,7 @@ static int audio_get_sdp( char *dest, int len, int payload, int port, void *d )
 
 static int audio_process_frame( struct frame *f, void *d )
 {
-	_os_printf("+");
+	//_os_printf("+");
 	struct rtp_media *rtp = (struct rtp_media *)d;
 	struct rtp_audio *out = (struct rtp_audio *)rtp->private;
 	out->f = f;

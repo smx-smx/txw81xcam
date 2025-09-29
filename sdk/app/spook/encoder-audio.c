@@ -58,7 +58,7 @@ static void *start_block(void)
 static void get_back_audio_frame( struct frame *f, void *d )
 {
 	struct audio_encoder *en = (struct audio_encoder *)d;
-	_os_printf("-");
+	//_os_printf("-");
 	//exchange_frame( en->ex, new_frame() );
 	deliver_frame_to_stream( f, en->output );
 }

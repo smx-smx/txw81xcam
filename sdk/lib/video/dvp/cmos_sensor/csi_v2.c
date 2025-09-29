@@ -141,6 +141,10 @@ static const _Sensor_Ident_ *devSensorInitTable[] = {
 	&hi704_init,
 #endif
 
+#if DEV_SENSOR_SP0828
+	&sp0828_init,
+#endif
+
 	NULL,
 };
 
@@ -242,6 +246,10 @@ static const _Sensor_Adpt_ *devSensorOPTable[] = {
 	&hi704_cmd,
 #endif
 
+#if DEV_SENSOR_SP0828
+	&sp0828_cmd,
+#endif
+
 };
 
 // Keep same order as devSensorOPTable - helps ID which driver is used to init sensor
@@ -341,6 +349,10 @@ static const char *devSensorNameTable[] = {
 
 #if DEV_SENSOR_HI704
     "hi704",
+#endif
+
+#if DEV_SENSOR_SP0828
+    "sp0828",
 #endif
 };
 
@@ -1750,9 +1762,9 @@ bool csi_yuv_mode(){
 	i2c_ioctl(iic_test,IIC_STRONG_OUTPUT,1);
 
 	//i2c_send_stop(iic_test);
-	os_printf("iic init finish,sensor reset & set sensor clk into 6M\r\n");
+	os_printf("iic init finish,sensor reset & set sensor clk into 16M\r\n");
 //2:init sensor
-	dvp_set_baudrate(dvp_test,6000000); 
+	dvp_set_baudrate(dvp_test,16000000); 
 	os_sleep_ms(3);
 
 	os_printf("set sensor finish ,Auto Check sensor id\r\n");
