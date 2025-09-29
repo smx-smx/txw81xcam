@@ -1762,9 +1762,9 @@ bool csi_yuv_mode(){
 	i2c_ioctl(iic_test,IIC_STRONG_OUTPUT,1);
 
 	//i2c_send_stop(iic_test);
-	os_printf("iic init finish,sensor reset & set sensor clk into 16M\r\n");
+	os_printf("iic init finish,sensor reset & set sensor clk into 8M\r\n");
 //2:init sensor
-	dvp_set_baudrate(dvp_test,16000000); 
+	dvp_set_baudrate(dvp_test,8000000); 
 	os_sleep_ms(3);
 
 	os_printf("set sensor finish ,Auto Check sensor id\r\n");
