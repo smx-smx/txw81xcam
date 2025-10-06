@@ -31,7 +31,7 @@ SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN]=
     // Back to Page 0: BT.601/YUV422 + enables (+ the one new byte 1B=07)
     0xFD,0x00,
     0x32,0x15,
-    0x34,0x76,
+    0x34,0x66,
     0x35,0x40,
     0x33,0xEF,
     0x1B,0x07,  // <-- new: matches vendor tails; small ISP/pipe enable
