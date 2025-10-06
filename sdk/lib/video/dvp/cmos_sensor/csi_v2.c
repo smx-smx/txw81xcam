@@ -40,45 +40,6 @@ SNSER snser;
 struct dvp_device *dvp_test;
 struct i2c_device *iic_test;
 struct vpp_device *vpp_test;
-/* ------------ SP0828 debug helpers (safe to keep even when not used) --------- */
-static void sp0828_set_page(struct i2c_device *dev, uint8 page)
-{
-    uint8 reg = 0xFD, val = page;
-    i2c_write(dev, (int8*)&reg, 1, (int8*)&val, 1);
-}
-
-static void sp0828_dump_range(struct i2c_device *dev, uint8 page, uint8 start, uint8 end)
-{
-    uint8 r, v;
-    sp0828_set_page(dev, page);
-    for (r = start; r <= end; r++) {
-        uint8 rr = r;
-        i2c_read(dev, (int8*)&rr, 1, (int8*)&v, 1);
-        os_printf("[SP0828] P%u [0x%02X] = 0x%02X\r\n", page, r, v);
-        if (r == 0xFF) break; /* safety */
-    }
-}
-
-static void sp0828_dump_keys_p1(struct i2c_device *dev)
-{
-    static const uint8 keys[] = {
-        0x31,0x33,0x34,0x35,
-        0x4F,0x50,0x51,0x52,0x53,0x54,
-        0x56,0x57,0x58,0x59,
-        0x65,0x66,0x67,0x68,0x69,0x6A,
-        0x6B,0x6C,0x6D,0x6E,0x6F,0x70,
-        0x71,0x72,0x73,0x74,0x75,0x76
-    };
-    uint8 i, v, rr;
-    sp0828_set_page(dev, 1);
-    for (i = 0; i < sizeof(keys); i++) {
-        rr = keys[i];
-        i2c_read(dev, (int8*)&rr, 1, (int8*)&v, 1);
-        os_printf("[SP0828] P1 [0x%02X] = 0x%02X\r\n", rr, v);
-    }
-}
-/* --------------------------------------------------------------------------- */
-
 
 
 static const _Sensor_Ident_ *devSensorInitTable[] = {
@@ -182,6 +143,10 @@ static const _Sensor_Ident_ *devSensorInitTable[] = {
 
 #if DEV_SENSOR_SP0828
 	&sp0828_init,
+#endif
+
+#if DEV_SENSOR_SP0A20
+	&sp0a20_init,
 #endif
 
 	NULL,
@@ -289,6 +254,10 @@ static const _Sensor_Adpt_ *devSensorOPTable[] = {
 	&sp0828_cmd,
 #endif
 
+#if DEV_SENSOR_SP0A20
+	&sp0a20_cmd,
+#endif
+
 };
 
 // Keep same order as devSensorOPTable - helps ID which driver is used to init sensor
@@ -392,6 +361,10 @@ static const char *devSensorNameTable[] = {
 
 #if DEV_SENSOR_SP0828
     "sp0828",
+#endif
+
+#if DEV_SENSOR_SP0A20
+    "sp0a20",
 #endif
 };
 
@@ -1214,7 +1187,7 @@ static _Sensor_Adpt_ * sensorAutoCheck(struct i2c_device *p_iic,uint8 *init_buf)
 	}
 	if(devSensor_Struct == NULL)
 	{
-		os_printf("Er: unkown!\r\n");
+		os_printf("Er: unkown!");
 		devSensorInit = (_Sensor_Ident_ *)&null_init;
 		return NULL; // index 0 is test only
 	}
@@ -1271,7 +1244,7 @@ void dvp_vpp_reset()
 		jpg_close(jpeg1_dev);
 
 	
-	os_printf("fv\r\n\r\n");
+	os_printf("fv\r\n");
 	if(mj1_on)
 		jpg_open(jpeg1_dev);
 	if(mj0_on)
@@ -1283,7 +1256,7 @@ void dvp_vpp_reset()
 
 
 void vpp_hsie_isr(uint32 irq,uint32 image_h,uint32  param){
-	//os_printf("H\r\n");
+	//os_printf("H");
 }
 
 void vpp_vsie_isr(uint32 irq,uint32 dev,uint32 param){	
@@ -1292,7 +1265,7 @@ void vpp_vsie_isr(uint32 irq,uint32 dev,uint32 param){
 }
 
 void vpp_data_done(uint32 irq,uint32 dev,uint32 param){
-	//os_printf("D\r\n");
+	//os_printf("D");
 }	
 
 extern uint8_t vga_room[2][640*480+640*480/2];
@@ -1302,7 +1275,7 @@ volatile uint8_t vfx_pingpang = 0;
 struct os_semaphore  vfx_sema;
 
 void vpp_itp_done(uint32 irq,uint32 dev,uint32 param){
-	os_printf("ITP_finish..\r\n\r\n");
+	os_printf("ITP_finish..\r\n");
 	itp_finish = 1;
 }
 
@@ -1316,24 +1289,24 @@ void vpp_itp_vfx_done(uint32 irq,uint32 dev,uint32 param){
 
 
 void vpp_itp_error(uint32 irq,uint32 dev,uint32 param){
-	os_printf("ITP_ER..\r\n\r\n");
+	os_printf("ITP_ER..\r\n");
 }
 
 void vpp_lib_error(uint32 irq,uint32 dev,uint32 param){
 	dvp_vpp_reset();
-	os_printf("LIB_ER..\r\n\r\n");
+	os_printf("LIB_ER..\r\n");
 }
 extern volatile uint32 outbuff_isr[2];
 void vpp_ipf_error(uint32 irq,uint32 dev,uint32 param){
 	dvp_vpp_reset();
-	os_printf("IPF ERR..\r\n\r\n");
+	os_printf("IPF ERR..\r\n");
 	#if JPG_EN == 1
 	outbuff_isr[0] = 0xff;
 	#endif
 }
 
 void vpp_md_find(uint32 irq,uint32 dev,uint32 param){
-	os_printf("md fine..\r\n\r\n");
+	os_printf("md fine..\r\n");
 }
 
 void dvp_line_isr(uint32 irq,uint32 image_h,uint32 param){
@@ -1341,17 +1314,17 @@ void dvp_line_isr(uint32 irq,uint32 image_h,uint32 param){
 }
 
 void dvp_fhfie_isr(uint32 irq,uint32 dev,uint32 param){
-	os_printf("fh\r\n\r\n");
+	os_printf("fh\r\n");
 }
 
 void dvp_fovie_isr(uint32 irq,uint32 dev,uint32 param){
 	dvp_vpp_reset();
-	os_printf("------------------------------------------------------------------------------fv\r\n\r\n");
+	os_printf("------------------------------------------------------------------------------fv\r\n");
 }
 
 void dvp_sip_isr(uint32 irq,uint32 dev,uint32 param){
 	dvp_vpp_reset();
-	os_printf("sip reset DVP\r\n\r\n");
+	os_printf("sip reset DVP\r\n");
 }
 
 void dvp_line_isr_test(uint32 irq,uint32 image_h,uint32 param){
@@ -1791,7 +1764,7 @@ bool csi_yuv_mode(){
 	dvp_init(dvp_test);
 
 //1:init iic
-	os_printf("csi_test start,iic init\r\n\r\n");
+	os_printf("csi_test start,iic init\r\n");
 
 	//iic_init_sensor(IIC_CLK,SENSOR_IIC);
 	i2c_open(iic_test, IIC_MODE_MASTER, IIC_ADDR_7BIT, 0);
@@ -1801,17 +1774,17 @@ bool csi_yuv_mode(){
 	i2c_ioctl(iic_test,IIC_STRONG_OUTPUT,1);
 
 	//i2c_send_stop(iic_test);
-	os_printf("iic init finish,sensor reset & set sensor clk into 26M\r\n\r\n");
+	os_printf("iic init finish,sensor reset & set sensor clk into 8M\r\n");
 //2:init sensor
-	dvp_set_baudrate(dvp_test,26000000); 
+	dvp_set_baudrate(dvp_test,8000000); 
 	os_sleep_ms(3);
 
-	os_printf("set sensor finish ,Auto Check sensor id\r\n\r\n");
+	os_printf("set sensor finish ,Auto Check sensor id\r\n");
 	p_sensor_cmd = snser.p_sensor_cmd = sensorAutoCheck(iic_test,NULL);
 	if(p_sensor_cmd == NULL){
 		return FALSE;
 	}
-	os_printf("Auto Check sensor id finish\r\n\r\n");
+	os_printf("Auto Check sensor id finish\r\n");
 	i2c_setting.u8DevWriteAddr = p_sensor_cmd->w_cmd;
 	i2c_setting.u8DevReadAddr = p_sensor_cmd->r_cmd;
 	i2c_SetSetting(&i2c_setting);
@@ -1822,11 +1795,11 @@ bool csi_yuv_mode(){
 	//sensor_ClockInit(((struct hgdvp*)dvp_test)->hw,p_sensor_cmd->mclk);
 	dvp_set_baudrate(dvp_test,p_sensor_cmd->mclk);
 
-	os_printf("init:%x u8Addrbytnum:%d,u8Databytnum:%d\r\n",(uint32_t)p_sensor_cmd->init,u8Addrbytnum,u8Databytnum);
+	os_printf("init:%x u8Addrbytnum:%d,u8Databytnum:%d\r\n",(uint32)p_sensor_cmd->init,u8Addrbytnum,u8Databytnum);
     if(p_sensor_cmd->init!=NULL)
 	{
 			
-			os_printf("SENSER....init\r\n\r\n");
+			os_printf("SENSER....init\r\n");
 			for(i=0;;i+=u8Addrbytnum+u8Databytnum)
 			{
 				if((p_sensor_cmd->init[i]==0xFF)&&(p_sensor_cmd->init[i+1]==0xFF)){
@@ -1902,15 +1875,7 @@ bool csi_yuv_mode(){
 			}
 			
 	}
-	
-    /* SP0828: dump some regs before CSI starts (runs only for address 0x18) */
-    if ( (p_sensor_cmd->w_cmd >> 1) == 0x18 ) {
-        os_printf("==== SP0828 SUPERDUMP (pre-CSI) ====\r\n\r\n\r\n");
-        sp0828_dump_range(iic_test, 0, 0x00, 0x3F);  /* Page 0: 0x00..0x3F */
-        sp0828_dump_keys_p1(iic_test);               /* Page 1: selected keys */
-        os_printf("==== end dump ====\r\n\r\n");
-    }
-i2c_close(iic_test);
+	i2c_close(iic_test);
 	
 	os_printf("SENSR ident ok:%d*%d\r\n",p_sensor_cmd->pixelw,p_sensor_cmd->pixelh);
 
@@ -1926,38 +1891,23 @@ i2c_close(iic_test);
 	photo_msg.out0_h = image_h;
 	photo_msg.out0_w = image_w;
 
-	// ... after sensor matched and its init table has run
-// >>> INSERT THIS BLOCK <<<
-	//extern void *iic_test;              // already used in this file
-	// If you want to restrict to sp0828 only, guard on 7-bit addr 0x18 if you have it:
-	// if (addr7 == 0x18) {
-	os_printf("==== SP0828 SUPERDUMP (pre-CSI) ====\r\n\r\n\r\n");
-	sp0828_dump_range(iic_test, /*page*/0, 0x00, 0x3F);
-	sp0828_dump_keys_p1(iic_test);
-	os_printf("==== end dump ====\r\n\r\n");
-	// } // end optional guard
+//3:init csi
 
-	// Now proceed to start CSI
-	os_printf("csi init start  --\r\n\r\n");
-
-
-	//3:init csi
-
-	os_printf("csi init start  --\r\n\r\n");
+	os_printf("csi init start  --\r\n");
 	os_printf("csi set size ====>%d*%d\r\n",image_w,image_h);
 	if(yuvbuf == NULL){
 		yuvbuf = os_malloc(p_sensor_cmd->pixelw*32+p_sensor_cmd->pixelw*32/2);
 		if(yuvbuf == NULL){
-			_os_printf("no room yuvbuf0\r\n\r\n");
+			_os_printf("no room yuvbuf0\r\n");
 			return FALSE;
 		}
 	}
 	
 #if SCEN_EN	
-	dvp_set_size(dvp_test,0,0,image_w*2-1,image_h*2-1);
+	//dvp_set_size(dvp_test,0,0,image_w*2-1,image_h*2-1);
 	vpp_set_video_size(vpp_test,image_w*2,image_h*2);
 #else
-	os_printf("csi dvp_size_set\r\n\r\n");
+	os_printf("csi dvp_size_set\r\n");
 	//dvp_set_size(dvp_test,0,0,image_w-1,image_h-1);
 	vpp_set_video_size(vpp_test,image_w,image_h);
 #endif
@@ -1966,7 +1916,7 @@ i2c_close(iic_test);
 	dvp_set_half_size(dvp_test,1);
 #endif 
 
-	dvp_set_exchange_d5_d6(dvp_test,1);
+	//dvp_set_exchange_d5_d6(dvp_test,0);
 
 	dvp_set_hsync_polarity(dvp_test,p_sensor_cmd->hsyn);
 	dvp_set_vsync_polarity(dvp_test,p_sensor_cmd->vsyn);
@@ -1984,16 +1934,16 @@ i2c_close(iic_test);
 	if(yuvbuf1 == NULL)
 		yuvbuf1 = os_malloc(p_sensor_cmd->pixelw/2*32+p_sensor_cmd->pixelw/2*16);
 	if(yuvbuf1 == NULL){
-		_os_printf("no room yuvbuf1\r\n\r\n");
+		_os_printf("no room yuvbuf1\r\n");
 		return FALSE;
 	}
 
 	vpp_set_buf1_count(vpp_test,8);
 	vpp_set_buf1_en(vpp_test,1);
 	vpp_set_buf1_shrink(vpp_test,1);
-	vpp_set_buf1_y_addr(vpp_test,(uint32_t)yuvbuf1);
-	vpp_set_buf1_u_addr(vpp_test,(uint32_t)yuvbuf1+(p_sensor_cmd->pixelw/2)*32);
-	vpp_set_buf1_v_addr(vpp_test,(uint32_t)yuvbuf1+(p_sensor_cmd->pixelw/2)*32+(p_sensor_cmd->pixelw/2)*8);
+	vpp_set_buf1_y_addr(vpp_test,(uint32)yuvbuf1);
+	vpp_set_buf1_u_addr(vpp_test,(uint32)yuvbuf1+(p_sensor_cmd->pixelw/2)*32);
+	vpp_set_buf1_v_addr(vpp_test,(uint32)yuvbuf1+(p_sensor_cmd->pixelw/2)*32+(p_sensor_cmd->pixelw/2)*8);
 	photo_msg.out1_h = image_h/2;
 	photo_msg.out1_w = image_w/2;
 #endif
@@ -2001,26 +1951,26 @@ i2c_close(iic_test);
 	vpp_set_buf0_count(vpp_test,8);    //2==16+2*2 = 20
 
 #if    (ONLY_Y == 1)
-	vpp_set_buf0_y_addr(vpp_test,(uint32_t)psram_buf);
+	vpp_set_buf0_y_addr(vpp_test,(uint32)psram_buf);
 #else
-	vpp_set_buf0_y_addr(vpp_test,(uint32_t)yuvbuf);
-	vpp_set_buf0_u_addr(vpp_test,(uint32_t)yuvbuf+p_sensor_cmd->pixelw*32);
-	vpp_set_buf0_v_addr(vpp_test,(uint32_t)yuvbuf+p_sensor_cmd->pixelw*32+p_sensor_cmd->pixelw*8);
+	vpp_set_buf0_y_addr(vpp_test,(uint32)yuvbuf);
+	vpp_set_buf0_u_addr(vpp_test,(uint32)yuvbuf+p_sensor_cmd->pixelw*32);
+	vpp_set_buf0_v_addr(vpp_test,(uint32)yuvbuf+p_sensor_cmd->pixelw*32+p_sensor_cmd->pixelw*8);
 #endif
 	
 	vpp_set_water0_color(vpp_test,0xff,0x80,0x80);
-	vpp_set_water0_bitmap(vpp_test,(uint32_t)ele_lib);
+	vpp_set_water0_bitmap(vpp_test,(uint32)ele_lib);
 	vpp_set_water0_locate(vpp_test,0,0);
 	vpp_set_water0_contrast(vpp_test,0);
 	vpp_set_watermark0_charsize_and_num(vpp_test,12,32,19);
 	vpp_set_watermark0_mode(vpp_test,1);
-	set_time_watermark(0,0,0,0,0,0);
+	set_time_watermark(0000,00,00,00,00,00);
 	vpp_set_water0_rc(vpp_test,0);
 
 
 	
 	vpp_set_water1_color(vpp_test,0xff,0x80,0x80);
-	vpp_set_water1_bitmap(vpp_test,(uint32_t)photo_lib2);
+	vpp_set_water1_bitmap(vpp_test,(uint32)photo_lib2);
 	vpp_set_water1_locate(vpp_test,45,30);
 	vpp_set_water1_contrast(vpp_test,0);
 	vpp_set_watermark1_size(vpp_test,48,48);
@@ -2029,11 +1979,11 @@ i2c_close(iic_test);
 	
 	dvp_set_exchange_d5_d6(dvp_test,0);
 	
-	os_printf("csi IRQ init\r\n\r\n");
+	os_printf("csi IRQ init\r\n");
 	dvp_request_irq(dvp_test,SII_ISR, (dvp_irq_hdl )&dvp_sip_isr,0);
 	dvp_request_irq(dvp_test,FOVIE_ISR,(dvp_irq_hdl )&dvp_fovie_isr,0);
 
-	vpp_request_irq(vpp_test,HSIE_ISR,(vpp_irq_hdl )&vpp_hsie_isr,(uint32_t)image_h);
+	vpp_request_irq(vpp_test,HSIE_ISR,(vpp_irq_hdl )&vpp_hsie_isr,(uint32)image_h);
 	vpp_request_irq(vpp_test,VSIE_ISR,(vpp_irq_hdl )&vpp_vsie_isr,0);
 	vpp_request_irq(vpp_test,SCIE_ISR,(vpp_irq_hdl )&vpp_data_done,0);
 	vpp_request_irq(vpp_test,LOVIE_ISR,(vpp_irq_hdl )&vpp_lib_error,0);
@@ -2072,7 +2022,7 @@ i2c_close(iic_test);
 
 	vpp_open(vpp_test);
 	//dvp_open(dvp_test);
-	os_printf("csi IRQ init finish,start get data\r\n\r\n");
+	os_printf("csi IRQ init finish,start get data\r\n");
 	return TRUE;
 }
 
@@ -2098,8 +2048,3 @@ bool csi_open(){
 
 
 #endif
-
-
-
-
-
