@@ -15,29 +15,34 @@ SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN]=
     0xAC,0x8A,  0x5E,0x00, 0x5F,0x00, 0x60,0x00, 0x61,0x00, 0x62,0x00,
     0xFD,0x00,
 
-    // Basic clocks/gating on this platform
+    // Basic clocks/gating
     0x1C,0x28,          // ISP/clock gating (safe default)
-    0x12,0x18,          // ensure ISP/sensor blocks enabled
+    0x12,0x18,          // make sure stream/ISP bits are enabled
 
-    // 640x480 timing (HB/VB minimal)
+    // 640x480 timing (minimal HB/VB)
     0x03,0x01, 0x04,0x32,   // HB
     0x09,0x01, 0x0A,0x46,   // VB
 
-    // --- Page 1: DVP pad / pipeline bits (conservative on-values) ---
+    // --- Page 1: DVP pads + effects off + route to DVP + U/V mux ---
     0xFD,0x01,
+    // Your original working pad drive cluster:
     0xD2,0x10, 0xD3,0x08, 0xD4,0x08, 0xD5,0x10,
     0xD6,0x10, 0xD7,0x08, 0xD8,0x08, 0xD9,0x10,
+    // Minimal extras that shouldn’t break output:
+    0xF4,0x00,          // effects = normal (no sketch/emboss)
+    0xFB,0x25,          // pipeline helper used in vendor inits
+    0xF2,0x49,          // route/enable DVP path
+    0x5D,0x10,          // DVP U/V mux bit (try 0x11 if still U/V swapped)
 
-    // --- Back to Page 0: BT.601/YUV422 to DVP + enables ---
+    // --- Back to Page 0: BT.601/YUV422 + enables (strong tail) ---
     0xFD,0x00,
-    0x32,0x15,          // HS/VS/PCLK polarity/mode (BK72xx-friendly default)
-    0x34,0x76,          // sync/timing
-    0x35,0x40,          // YUV422 output
-    0x33,0xEF,          // enable ISP path
+    0x31,0x10,          // clamp/mode helper (benign)
+    0x32,0x15,          // HS/VS/PCLK polarity/mode
+    0x34,0x66,          // sync nibble (alt to 0x76; often fixes weird color)
+    0x35,0x40,          // YUV422 on
+    0x33,0xEF,          // enable path blocks
     0x5F,0x51,          // route to DVP (not MIPI)
-
-    // Re-assert stream enable at the end
-    0x12,0x18,
+    0x12,0x18,          // re-assert stream at the very end
 
     -1,-1
 };
