@@ -34,7 +34,7 @@ SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN]=
     0xFD,0x00,
     0x32,0x15,          // HS/VS/PCLK polarity/mode (BK72xx-friendly default)
     0x34,0x76,          // sync/timing
-    0x35,0x42,          // YUV422 output
+    0x35,0x43,          // YUV422 output
     0x33,0xEF,          // enable ISP path
     0x5F,0x51,          // route to DVP (not MIPI)
 
