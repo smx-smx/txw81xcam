@@ -10,10 +10,6 @@
 
 
 SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN]= 
-// SP0A20 – DVP (parallel), 24 MHz MCLK, BT.601 HS/VS, YUV422 (YUYV)
-// 7-bit I2C = 0x21 (write=0x42/read=0x43). ID reg 0x02 = 0x2B.
-// 1-byte reg / 1-byte data; sentinel -1,-1
-SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN] =
 {
     // --- Page 0: basic enable + timing ---------------------------------
     0xFD,0x00,
@@ -79,7 +75,6 @@ SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN] =
 
     -1, -1
 };
-
 
 
 SENSOR_OP_SECTION const _Sensor_Adpt_ sp0a20_cmd= 
