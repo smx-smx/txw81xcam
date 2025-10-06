@@ -416,6 +416,17 @@ SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN]=
 	0xf2,0x49,
 	0x35,0x00,
 	0x5d,0x11,
+
+	// --- Force DVP YUV422 output & enable pipeline (page 0) ---
+    0xfd,0x00,
+    0x32,0x15,  // HS/VS/pclk mode & polarity (matches other YUV sensors here)
+    0x34,0x76,  // sync / drive config used across this platform
+    0x35,0x40,  // YUV422 out (not 0x00)
+    0x33,0xef,  // enable ISP blocks / data path
+    0x5f,0x51,  // route to DVP
+    // If sensor has been left in standby, de-assert it:
+    0x12,0x00,  // stream on (was 0x02 at the top)
+
    
 -1,-1};
 
