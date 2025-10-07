@@ -11,19 +11,6 @@
 
 SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN]= 
 {
-#include "sys_config.h"
-#include "typesdef.h"
-#include "lib/video/dvp/cmos_sensor/csi.h"
-#include "tx_platform.h"
-#include "list.h"
-#include "dev.h"
-#include "hal/i2c.h"
-
-#if DEV_SENSOR_SP0A20
-
-
-SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN]= 
-{
     0xFD, 0x00, 0x99, 0x6C, 0xF3, 0x81, 0xF3, 0x81, 0x63, 0x86, 0x61, 0x86, 0x48, 0x8D, 0x47, 0x8D, 0x80, 0x96,
     0x81, 0x96, 0xDD, 0xA1, 0xDD, 0xA1, 0x22, 0xAF, 0x22, 0xAF, 0x0A, 0xBE, 0x0A, 0xBE, 0x48, 0xCE,
     0x48, 0xCE, 0x5B, 0xDC, 0x89, 0xDF, 0x88, 0xDF, 0x71, 0xF1, 0x72, 0xF1, 0xA5, 0x03, 0xA6, 0x03,
@@ -54,39 +41,6 @@ SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN]=
     0x5F, 0x63, 0x6D, 0x64, 0x5F, 0x6D, 0x69, 0x63, 0x5F, 0x64, 0x4A, 0xC3, 0x61, 0x63, 0x5F, 0x6C,
     0x6F, 0x6F, 0x70, 0x00, 0xFF, 0xFF,
 };
-
-SENSOR_INIT_SECTION static const unsigned char SP0A20prewriteInitTable[CMOS_INIT_LEN] =
-{
-    0x12, 0x80, 0xFF, 0xFF,
-};
-
-SENSOR_OP_SECTION const _Sensor_Adpt_ sp0a20_cmd= 
-{	
-	.typ = 1, //YUV
-	.pixelw = 640,
-	.pixelh= 480,
-	.hsyn = 1,
-	.vsyn = 1,
-	.rduline = 0,//
-	.rawwide = 1,//10bit
-	.colrarray = 2,//0:_RGRG_ 1:_GRGR_,2:_BGBG_,3:_GBGB_
-	.init = (uint8 *)SP0A20InitTable,
-    .preset = (uint8*)SP0A20prewriteInitTable,
-	.rotate_adapt = {0},
-	.hvb_adapt = {0x80,0x0a,0x80,0x0a},
-	. mclk = 24000000,
-	.p_fun_adapt = {NULL,NULL,NULL},
-	.p_xc7016_adapt = {NULL},	
-};
-
-const _Sensor_Ident_ sp0a20_init=
-{
-	0x2B,0x42,0x43,0x01,0x01,0x02
-};
-
-
-#endif
--1,-1};
 
 SENSOR_INIT_SECTION static const unsigned char SP0A20prewriteInitTable[CMOS_INIT_LEN] =
 {
