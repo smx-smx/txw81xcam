@@ -11,10 +11,10 @@
 
 SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN]= 
 {
-  //0xfd,0x00,
+0xfd,0x00,
   //0x36,0x02,
-  //0x0c,0x00,
-  //0x12,0x02,
+  0x0c,0x00,
+  0x12,0x02,
   0x13,0x2f,
   0x6d,0x32,
   0x6c,0x32,
@@ -47,7 +47,7 @@ SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN]=
   0x28,0x0b,
   0x37,0x5a,  //4a
   0xfd,0x02,
-  0x01,0x80,
+  0x01,0x00,
 
   0xfd,0x01,
   0x41,0x00,
@@ -414,12 +414,16 @@ SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN]=
   0xf2,0x49,
   0x35,0x00,
   0x5d,0x11,
+  0xfd,0x00,
+  0x12,0x02,
+  0x13,0x2f,
 
--1,-1};
+-1,-1
+};
 
 SENSOR_INIT_SECTION static const unsigned char SP0A20prewriteInitTable[CMOS_INIT_LEN] =
 {
-    0x12, 0x80, 0xFF, 0xFF,
+    0xFF, 0xFF,
 };
 
 SENSOR_OP_SECTION const _Sensor_Adpt_ sp0a20_cmd= 
@@ -433,7 +437,7 @@ SENSOR_OP_SECTION const _Sensor_Adpt_ sp0a20_cmd=
 	.rawwide = 1,//10bit
 	.colrarray = 2,//0:_RGRG_ 1:_GRGR_,2:_BGBG_,3:_GBGB_
 	.init = (uint8 *)SP0A20InitTable,
-    .preset = (uint8*)SP0A20prewriteInitTable,
+    .preset = NULL,
 	.rotate_adapt = {0},
 	.hvb_adapt = {0x80,0x0a,0x80,0x0a},
 	. mclk = 24000000,
