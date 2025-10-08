@@ -11,7 +11,7 @@
 
 SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN]= 
 {
-0xfd,0x00,
+  0xfd,0x00,
   //0x36,0x02,
   0x0c,0x00,
   0x12,0x02,
@@ -414,12 +414,12 @@ SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN]=
   0xf2,0x49,
   0x35,0x00,
   0x5d,0x11,
+  
   0xfd,0x00,
   0x12,0x02,
   0x13,0x2f,
-
--1,-1
-};
+  
+-1,-1};
 
 SENSOR_INIT_SECTION static const unsigned char SP0A20prewriteInitTable[CMOS_INIT_LEN] =
 {
