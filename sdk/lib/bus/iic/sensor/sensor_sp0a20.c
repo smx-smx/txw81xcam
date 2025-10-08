@@ -417,7 +417,7 @@ SENSOR_INIT_SECTION static const unsigned char SP0A20InitTable[CMOS_INIT_LEN]=
   
   0xfd,0x00,
   0x12,0x02,
-  0x13,0x3f,
+  0x13,0x1f,
   
 -1,-1};
 
