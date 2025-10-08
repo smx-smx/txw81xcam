@@ -145,21 +145,4 @@ const _Sensor_Ident_ sp0a20_init=
 };
 
 
-#endife = 1,//10bit
-	.colrarray = 2,//0:_RGRG_ 1:_GRGR_,2:_BGBG_,3:_GBGB_
-	.init = (uint8 *)SP0A20InitTable,
-    .preset = (uint8*)SP0A20prewriteInitTable,
-	.rotate_adapt = {0},
-	.hvb_adapt = {0x80,0x0a,0x80,0x0a},
-	. mclk = 24000000,
-	.p_fun_adapt = {NULL,NULL,NULL},
-	.p_xc7016_adapt = {NULL},	
-};
-
-const _Sensor_Ident_ sp0a20_init=
-{
-	0x2B,0x42,0x43,0x01,0x01,0x02
-};
-
-
 #endif
